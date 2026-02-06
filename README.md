@@ -268,13 +268,16 @@ Build your own MCP (Model Context Protocol) server to provide custom tools for t
 
 ### Complete Example
 
-Full working example available at: [mcp-server-1](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-1)
+Full working example available at: [mcp-server-typescript](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-typescript)
 
 ### Quick Start
 
 ```bash
-# Clone and navigate to MCP server example
-cd mcp-server-1
+# Clone MCP server example
+git clone https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-typescript
+
+# Navigate to MCP server example
+cd mcp-server-typescript
 
 # Install dependencies
 bun install
@@ -290,7 +293,7 @@ Server will start at `http://localhost:4000` 🎉
 ### Project Structure
 
 ```
-mcp-server-1/
+mcp-server-typescript/
 ├── src/
 │   ├── index.ts         # Main server
 │   ├── registry.ts      # Tool registry

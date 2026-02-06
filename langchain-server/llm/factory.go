@@ -25,6 +25,7 @@ type LangChainClient struct {
 	LLM           llms.Model
 	Provider      string
 	Model         string
+	URL           *string
 	Config        *types.SetLLM
 	SupportsTools bool
 }
@@ -43,6 +44,7 @@ func CreateLangChainLLM(credential types.RequestChatCredential) (*LangChainClien
 	client := &LangChainClient{
 		Provider: provider,
 		Model:    model,
+		URL:      credential.URL,
 		Config:   credential.Set,
 	}
 
@@ -112,6 +114,7 @@ func CreateLangChainLLM(credential types.RequestChatCredential) (*LangChainClien
 			return nil, types.NewErrorRequest("Llama.cpp URL is required", 400)
 		}
 
+		fmt.Printf("   Llama.cpp BaseURL: %s\n", *credential.URL)
 		llmInstance, err = openai.New(
 			openai.WithToken("llama_cpp"),
 			openai.WithModel(model),
@@ -155,7 +158,11 @@ func (c *LangChainClient) GenerateContent(ctx context.Context, messages []llms.M
 
 	result, err := c.LLM.GenerateContent(ctx, messages, callOpts...)
 	if err != nil {
-		fmt.Printf("   GenerateContent error: %v\n", err)
+		fmt.Printf("   ❌ GenerateContent error: %v\n", err)
+		fmt.Printf("   Provider: %s, Model: %s\n", c.Provider, c.Model)
+		if c.URL != nil {
+			fmt.Printf("   Configured URL: %s\n", *c.URL)
+		}
 		return "", err
 	}
 

@@ -78,9 +78,12 @@ def build_url(args):
 def dns_lookup(args):
     hostname = args.get("hostname", "")
     try:
+        print(f"hostname: {hostname}")
         ip = socket.gethostbyname(hostname)
+        print(f"ip: {ip}")
         return {"ip": ip, "hostname": hostname}
-    except socket.gaierror as e:
+    except Exception as e:
+        print(f"Error: {e}")
         return {"error": str(e)}
 
 def reverse_dns(args):

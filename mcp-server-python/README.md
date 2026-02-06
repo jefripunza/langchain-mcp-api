@@ -55,7 +55,39 @@ Model Context Protocol (MCP) Server implementation using Python FastAPI with uni
 
 ## 📦 Installation
 
-### Using Python Virtual Environment
+### ⚠️ Python Version Requirement
+
+**Important:** This project requires **Python 3.9 - 3.13** due to Pydantic dependencies. Python 3.14+ is not yet supported.
+
+Check your Python version:
+```bash
+python3 --version
+```
+
+If you have Python 3.14, install Python 3.13:
+```bash
+# macOS
+brew install python@3.13
+
+# Or use pyenv
+pyenv install 3.13.0
+pyenv local 3.13.0
+```
+
+### Quick Setup (Recommended)
+
+```bash
+# Clean setup with compatible Python version
+./setup.sh
+```
+
+Or use the activation script:
+```bash
+# Run the activation script (creates venv, installs deps, activates)
+./activate.sh
+```
+
+### Manual Setup
 
 ```bash
 # Create virtual environment
@@ -83,10 +115,20 @@ docker run -d -p 4050:4050 --name mcp-server-python mcp-server-python
 
 ## 🏃 Running the Server
 
-### Development Mode
+### Quick Start (Recommended)
+
+```bash
+# Run the server (auto-activates venv)
+./run.sh
+```
+
+### Manual Start
 
 ```bash
 # Make sure virtual environment is activated
+source venv/bin/activate
+
+# Run the server
 python main.py
 ```
 

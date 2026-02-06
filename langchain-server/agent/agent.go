@@ -537,6 +537,7 @@ RULES - READ CAREFULLY:
 2. Use tools when needed. Format: <thinking>brief reason</thinking><message>{"tool_name":"name","tool_args":{...}}</message>
 3. For final answers: <thinking>brief summary</thinking><message>your answer</message>
 4. NO extra text outside tags. NO repetition.
+5. IMPORTANT: When using tools, carefully check ALL required parameters. Provide EXACTLY the parameters needed - no missing, no extra. Match parameter names and types precisely.
 
 EXAMPLE (tool call):
 <thinking>Need weather data for coordinates.</thinking>

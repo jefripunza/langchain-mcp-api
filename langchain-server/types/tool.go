@@ -24,7 +24,7 @@ type ToolParameter struct {
 type ToolParameterProperty struct {
 	Type        ParameterType `json:"type"`
 	Description *string       `json:"description,omitempty"`
-	Enum        []string      `json:"enum,omitempty"`
+	Enum        []interface{} `json:"enum,omitempty"`
 }
 
 type ToolInvokeRequest struct {

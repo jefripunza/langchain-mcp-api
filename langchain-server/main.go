@@ -23,11 +23,11 @@ func main() {
 
 	app.Use(cors.New())
 	app.Use(helmet.New())
+	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
 		// Format: "${time} ${status} - ${method} ${path}\n",
 		// "[${time}] ${ip} ${status} - ${latency} ${method} ${path} ${error}"
 	}))
-	app.Use(requestid.New())
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{

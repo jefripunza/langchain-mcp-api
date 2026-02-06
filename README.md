@@ -235,18 +235,48 @@ data: {"type":"done","done":true,"total_steps":3,"timestamp":"2024-02-04T09:00:0
 
 ## 🔍 Verbose Logging
 
-The server provides detailed execution logs:
+Control detailed execution logs with the `VERBOSE` environment variable:
+
+### Enable Verbose Mode
+
+```bash
+# Enable verbose logging (shows all requestID-prefixed logs)
+export VERBOSE=true
+go run main.go
+
+# Or with Docker
+docker run -d \
+  -p 6000:6000 \
+  -e VERBOSE=true \
+  jefriherditriyanto/langchain-mcp-api:latest
+```
+
+### Disable Verbose Mode
+
+```bash
+# Disable verbose logging (hides requestID-prefixed logs)
+export VERBOSE=false
+go run main.go
+
+# Or simply don't set the variable (defaults to false)
+go run main.go
+```
+
+### Example Verbose Output
+
+When `VERBOSE=true`, you'll see detailed execution traces:
 
 ```
-📦 [AGENT] Creating LangChain Agent...
-   Provider: llama_cpp
-   Model: gpt-oss-20b.gguf
-   ✅ Loaded 22 tools from MCP servers
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9] [START REQUEST]
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]📦 [AGENT] Creating LangChain Agent...
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   Provider: llama_cpp
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   Model: gpt-oss-20b.gguf
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   ✅ Loaded 22 tools from MCP servers
 
-🚀 [INVOKE] Starting agent invocation...
-   Input: What is the weather?
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]🚀 [INVOKE] Starting agent invocation...
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   Input: What is the weather?
 
-   🔁 [ITERATION 1/10]
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   🔁 [ITERATION 1/10]
       📝 Built 2 messages for LLM
       🤖 Calling LLM...
       ✅ LLM Response (245 chars)

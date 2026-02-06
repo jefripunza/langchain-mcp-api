@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"langchain-mcp-api/types"
+	"langchain-mcp-api/utils"
 
 	"github.com/tmc/langchaingo/tools"
 )
@@ -48,21 +49,21 @@ func (t *MCPTool) Call(ctx context.Context, input string) (string, error) {
 }
 
 func LoadMCPToolsAsLangChain(requestID string, mcpServers []string) ([]tools.Tool, []types.Tool, error) {
-	fmt.Printf("\n[%s]🔌 [MCP] Loading tools from MCP servers...\n", requestID)
+	utils.VerbosePrintf("\n[%s]🔌 [MCP] Loading tools from MCP servers...\n", requestID)
 	var langchainTools []tools.Tool
 	var toolDefs []types.Tool
 
 	for idx, mcpURL := range mcpServers {
-		fmt.Printf("[%s]   [%d/%d] Fetching from: %s\n", requestID, idx+1, len(mcpServers), mcpURL)
+		utils.VerbosePrintf("[%s]   [%d/%d] Fetching from: %s\n", requestID, idx+1, len(mcpServers), mcpURL)
 		serverTools, err := fetchToolsFromServer(mcpURL)
 		if err != nil {
-			fmt.Printf("      ❌ Failed: %v\n", err)
+			utils.VerbosePrintf("      ❌ Failed: %v\n", err)
 			continue
 		}
-		fmt.Printf("[%s]      ✅ Loaded %d tools\n", requestID, len(serverTools))
+		utils.VerbosePrintf("[%s]      ✅ Loaded %d tools\n", requestID, len(serverTools))
 
 		for _, toolDef := range serverTools {
-			fmt.Printf("[%s]         - %s: %s\n", requestID, toolDef.Name, toolDef.Description)
+			utils.VerbosePrintf("[%s]         - %s: %s\n", requestID, toolDef.Name, toolDef.Description)
 			mcpTool := &MCPTool{
 				name:        toolDef.Name,
 				description: toolDef.Description,
@@ -74,7 +75,7 @@ func LoadMCPToolsAsLangChain(requestID string, mcpServers []string) ([]tools.Too
 		}
 	}
 
-	fmt.Printf("\n[%s]✅ [MCP] Total tools loaded: %d\n", requestID, len(langchainTools))
+	utils.VerbosePrintf("\n[%s]✅ [MCP] Total tools loaded: %d\n", requestID, len(langchainTools))
 	return langchainTools, toolDefs, nil
 }
 
@@ -133,26 +134,26 @@ func InvokeTool(mcpURL string, toolName string, args map[string]interface{}) (in
 }
 
 func CheckServers(requestID string, mcpServers []string) []string {
-	fmt.Printf("\n[%s]🏥 [MCP] Checking server health...\n", requestID)
+	utils.VerbosePrintf("\n[%s]🏥 [MCP] Checking server health...\n", requestID)
 	var availableServers []string
 
 	for idx, serverURL := range mcpServers {
-		fmt.Printf("[%s]   [%d/%d] Checking: %s\n", requestID, idx+1, len(mcpServers), serverURL)
+		utils.VerbosePrintf("[%s]   [%d/%d] Checking: %s\n", requestID, idx+1, len(mcpServers), serverURL)
 		resp, err := http.Get(serverURL + "/health")
 		if err != nil {
-			fmt.Printf("[%s]      ❌ Not available: %v\n", requestID, err)
+			utils.VerbosePrintf("[%s]      ❌ Not available: %v\n", requestID, err)
 			continue
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode == http.StatusOK {
 			availableServers = append(availableServers, serverURL)
-			fmt.Printf("[%s]      ✅ Healthy (status %d)\n", requestID, resp.StatusCode)
+			utils.VerbosePrintf("[%s]      ✅ Healthy (status %d)\n", requestID, resp.StatusCode)
 		} else {
-			fmt.Printf("[%s]      ⚠️  Unhealthy (status %d)\n", requestID, resp.StatusCode)
+			utils.VerbosePrintf("[%s]      ⚠️  Unhealthy (status %d)\n", requestID, resp.StatusCode)
 		}
 	}
 
-	fmt.Printf("\n[%s]✅ [MCP] Available servers: %d/%d\n", requestID, len(availableServers), len(mcpServers))
+	utils.VerbosePrintf("\n[%s]✅ [MCP] Available servers: %d/%d\n", requestID, len(availableServers), len(mcpServers))
 	return availableServers
 }

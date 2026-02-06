@@ -38,7 +38,7 @@ func validateChatRequest(body *types.RequestChatBody) error {
 
 func ChatHandler(c fiber.Ctx) error {
 	requestID := requestid.FromContext(c)
-	fmt.Printf("[%s] [START REQUEST]\n", requestID)
+	utils.VerbosePrintf("[%s] [START REQUEST]\n", requestID)
 
 	var body types.RequestChatBody
 	if err := c.Bind().JSON(&body); err != nil {
@@ -105,13 +105,13 @@ func ChatHandler(c fiber.Ctx) error {
 		response.Message = lastMsg.Content
 	}
 
-	fmt.Printf("[%s] [END REQUEST]\n", requestID)
+	utils.VerbosePrintf("[%s] [END REQUEST]\n", requestID)
 	return c.JSON(response)
 }
 
 func ChatStreamHandler(c fiber.Ctx) error {
 	requestID := requestid.FromContext(c)
-	fmt.Printf("[%s] [START REQUEST]\n", requestID)
+	utils.VerbosePrintf("[%s] [START REQUEST]\n", requestID)
 
 	var body types.RequestChatBody
 	if err := c.Bind().JSON(&body); err != nil {

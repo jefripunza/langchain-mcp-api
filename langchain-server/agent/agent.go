@@ -12,6 +12,7 @@ import (
 	"langchain-mcp-api/llm"
 	"langchain-mcp-api/mcp"
 	"langchain-mcp-api/types"
+	"langchain-mcp-api/utils"
 
 	"github.com/tmc/langchaingo/agents"
 	"github.com/tmc/langchaingo/chains"
@@ -37,29 +38,29 @@ func CreateLangChainAgent(
 	mcpServers []string,
 	systemPrompt *string,
 ) (*LangChainAgent, error) {
-	fmt.Printf("\n[%s]📦 [AGENT] Creating LangChain Agent...\n", requestID)
-	fmt.Printf("[%s]   Provider: %s\n", requestID, credential.Provider)
+	utils.VerbosePrintf("\n[%s]📦 [AGENT] Creating LangChain Agent...\n", requestID)
+	utils.VerbosePrintf("[%s]   Provider: %s\n", requestID, credential.Provider)
 	if credential.Model != nil {
-		fmt.Printf("[%s]   Model: %s\n", requestID, *credential.Model)
+		utils.VerbosePrintf("[%s]   Model: %s\n", requestID, *credential.Model)
 	}
-	fmt.Printf("[%s]   MCP Servers: %d\n", requestID, len(mcpServers))
+	utils.VerbosePrintf("[%s]   MCP Servers: %d\n", requestID, len(mcpServers))
 
 	langchainTools, toolDefs, err := mcp.LoadMCPToolsAsLangChain(requestID, mcpServers)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("[%s]   ✅ Loaded %d tools from MCP servers\n", requestID, len(langchainTools))
+	utils.VerbosePrintf("[%s]   ✅ Loaded %d tools from MCP servers\n", requestID, len(langchainTools))
 
 	llmClient, err := llm.CreateLangChainLLM(requestID, credential)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("\n[%s]🤖 Using LLM provider: %s", requestID, credential.Provider)
+	utils.VerbosePrintf("\n[%s]🤖 Using LLM provider: %s", requestID, credential.Provider)
 	if llmClient.SupportsTools {
-		fmt.Println(" (with native tool calling)")
+		utils.VerbosePrintf("[%s] (with native tool calling)\n", requestID)
 	} else {
-		fmt.Println(" (with manual tool calling)")
+		utils.VerbosePrintf("[%s] (with manual tool calling)\n", requestID)
 	}
 
 	agent := &LangChainAgent{
@@ -73,7 +74,7 @@ func CreateLangChainAgent(
 	}
 
 	if llmClient.SupportsTools {
-		fmt.Printf("[%s]   🔧 Initializing agent executor with native tool calling...\n", requestID)
+		utils.VerbosePrintf("[%s]   🔧 Initializing agent executor with native tool calling...\n", requestID)
 		executor, err := agents.Initialize(
 			llmClient.LLM,
 			langchainTools,
@@ -84,18 +85,18 @@ func CreateLangChainAgent(
 			return nil, err
 		}
 		agent.executor = executor
-		fmt.Printf("[%s]   ✅ Agent executor initialized\n", requestID)
+		utils.VerbosePrintf("[%s]   ✅ Agent executor initialized\n", requestID)
 	} else {
-		fmt.Printf("[%s]   🔧 Using manual tool calling mode\n", requestID)
+		utils.VerbosePrintf("[%s]   🔧 Using manual tool calling mode\n", requestID)
 	}
 
-	fmt.Printf("[%s]✅ [AGENT] Agent created successfully\n", requestID)
+	utils.VerbosePrintf("[%s]✅ [AGENT] Agent created successfully\n", requestID)
 	return agent, nil
 }
 
 func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input string) (*types.AgentState, error) {
-	fmt.Printf("\n[%s]🚀 [INVOKE] Starting agent invocation...\n", requestID)
-	fmt.Printf("[%s]   Input: %s\n", requestID, input)
+	utils.VerbosePrintf("\n[%s]🚀 [INVOKE] Starting agent invocation...\n", requestID)
+	utils.VerbosePrintf("[%s]   Input: %s\n", requestID, input)
 
 	state := &types.AgentState{
 		Input:    input,
@@ -103,14 +104,14 @@ func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input str
 	}
 
 	if a.supportsTools && a.executor != nil {
-		fmt.Printf("[%s]   🔄 Using native tool calling executor...\n", requestID)
+		utils.VerbosePrintf("[%s]   🔄 Using native tool calling executor...\n", requestID)
 		result, err := chains.Run(ctx, a.executor, input)
 		if err != nil {
-			fmt.Printf("[%s]   ❌ Error: %v\n", requestID, err)
+			utils.VerbosePrintf("[%s]   ❌ Error: %v\n", requestID, err)
 			return nil, err
 		}
 
-		fmt.Printf("[%s]   ✅ Response: %s\n", requestID, result)
+		utils.VerbosePrintf("[%s]   ✅ Response: %s\n", requestID, result)
 		state.Message = &result
 		state.Messages = append(state.Messages, types.Message{
 			Role:    "assistant",
@@ -120,24 +121,24 @@ func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input str
 		return state, nil
 	}
 
-	fmt.Printf("[%s]   🔄 Using manual tool calling mode...\n", requestID)
+	utils.VerbosePrintf("[%s]   🔄 Using manual tool calling mode...\n", requestID)
 	maxIterations := 10
 	iteration := 0
 
 	for iteration < maxIterations {
 		iteration++
-		fmt.Printf("\n[%s]   🔁 [ITERATION %d/%d]\n", requestID, iteration, maxIterations)
+		utils.VerbosePrintf("\n[%s]   🔁 [ITERATION %d/%d]\n", requestID, iteration, maxIterations)
 
 		messages := a.buildMessages(requestID, state)
-		fmt.Printf("[%s]      📝 Built %d messages for LLM\n", requestID, len(messages))
-		fmt.Printf("[%s]      🤖 Calling LLM...\n", requestID)
+		utils.VerbosePrintf("[%s]      📝 Built %d messages for LLM\n", requestID, len(messages))
+		utils.VerbosePrintf("[%s]      🤖 Calling LLM...\n", requestID)
 
 		content, err := a.llmClient.GenerateContent(requestID, ctx, messages)
 		if err != nil {
-			fmt.Printf("[%s]      ❌ LLM Error: %v\n", requestID, err)
+			utils.VerbosePrintf("[%s]      ❌ LLM Error: %v\n", requestID, err)
 			return nil, err
 		}
-		fmt.Printf("[%s]      ✅ LLM Response (%d chars)\n", requestID, len(content))
+		utils.VerbosePrintf("[%s]      ✅ LLM Response (%d chars)\n", requestID, len(content))
 
 		// Parse tool calls FIRST before truncation
 		response := &types.Message{
@@ -148,29 +149,29 @@ func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input str
 		state.Messages = append(state.Messages, *response)
 
 		if len(response.ToolCalls) == 0 {
-			fmt.Printf("[%s]      ✅ No tool calls detected - final response\n", requestID)
+			utils.VerbosePrintf("[%s]      ✅ No tool calls detected - final response\n", requestID)
 			lastMessage := response.Content
 			state.Message = &lastMessage
 			break
 		}
 
-		fmt.Printf("[%s]      🔧 Detected %d tool call(s)\n", requestID, len(response.ToolCalls))
+		utils.VerbosePrintf("[%s]      🔧 Detected %d tool call(s)\n", requestID, len(response.ToolCalls))
 		for i, tc := range response.ToolCalls {
-			fmt.Printf("[%s]         %d. %s(%v)\n", requestID, i+1, tc.Name, tc.Args)
+			utils.VerbosePrintf("[%s]         %d. %s(%v)\n", requestID, i+1, tc.Name, tc.Args)
 		}
 
-		fmt.Printf("[%s]      ⚙️  Executing tools...\n", requestID)
+		utils.VerbosePrintf("[%s]      ⚙️  Executing tools...\n", requestID)
 		toolMessages, err := a.executeTools(requestID, ctx, response.ToolCalls)
 		if err != nil {
-			fmt.Printf("[%s]      ❌ Tool execution error: %v\n", requestID, err)
+			utils.VerbosePrintf("[%s]      ❌ Tool execution error: %v\n", requestID, err)
 			return nil, err
 		}
-		fmt.Printf("[%s]      ✅ Tools executed successfully (%d results)\n", requestID, len(toolMessages))
+		utils.VerbosePrintf("[%s]      ✅ Tools executed successfully (%d results)\n", requestID, len(toolMessages))
 
 		state.Messages = append(state.Messages, toolMessages...)
 	}
 
-	fmt.Printf("[%s]✅ [INVOKE] Agent invocation completed\n", requestID)
+	utils.VerbosePrintf("[%s]✅ [INVOKE] Agent invocation completed\n", requestID)
 	return state, nil
 }
 
@@ -493,7 +494,7 @@ func (a *LangChainAgent) buildMessages(requestID string, state *types.AgentState
 	startIdx := 0
 	if len(state.Messages) > maxHistoryMessages {
 		startIdx = len(state.Messages) - maxHistoryMessages
-		fmt.Printf("[%s]      ⚠️  Trimming message history: keeping last %d of %d messages\n", requestID, maxHistoryMessages, len(state.Messages))
+		utils.VerbosePrintf("[%s]      ⚠️  Trimming message history: keeping last %d of %d messages\n", requestID, maxHistoryMessages, len(state.Messages))
 	}
 
 	for _, msg := range state.Messages[startIdx:] {
@@ -603,22 +604,22 @@ func (a *LangChainAgent) executeTools(requestID string, ctx context.Context, too
 	var toolMessages []types.Message
 
 	for idx, call := range toolCalls {
-		fmt.Printf("[%s]         [%d/%d] Executing: %s\n", requestID, idx+1, len(toolCalls), call.Name)
+		utils.VerbosePrintf("[%s]         [%d/%d] Executing: %s\n", requestID, idx+1, len(toolCalls), call.Name)
 		var result interface{}
 		var err error
 
 		for _, serverURL := range a.mcpServers {
 			result, err = mcp.InvokeTool(serverURL, call.Name, call.Args)
 			if err == nil {
-				fmt.Printf("[%s]            ✅ Success from %s\n", requestID, serverURL)
+				utils.VerbosePrintf("[%s]            ✅ Success from %s\n", requestID, serverURL)
 				break
 			} else {
-				fmt.Printf("[%s]            ⚠️  Failed from %s: %v\n", requestID, serverURL, err)
+				utils.VerbosePrintf("[%s]            ⚠️  Failed from %s: %v\n", requestID, serverURL, err)
 			}
 		}
 
 		if err != nil {
-			fmt.Printf("[%s]            ❌ All servers failed for %s\n", requestID, call.Name)
+			utils.VerbosePrintf("[%s]            ❌ All servers failed for %s\n", requestID, call.Name)
 			return nil, err
 		}
 

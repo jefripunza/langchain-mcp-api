@@ -36,6 +36,12 @@ func main() {
 		})
 	})
 
+	app.Get("/health", func(c fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "ok",
+		})
+	})
+
 	app.Post("/chat", handlers.ChatHandler)
 	app.Post("/chat/stream", handlers.ChatStreamHandler)
 

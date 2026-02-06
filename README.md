@@ -47,209 +47,6 @@
 
 ---
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Go 1.25 or higher
-- MCP server (optional, for tools)
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/jefripunza/langchain-mcp-api.git
-cd langchain-mcp-api/langchain-server
-
-# Install dependencies
-go mod tidy
-
-# Run the server
-go run main.go
-```
-
-Server will start at `http://localhost:6000` 🎉
-
----
-
-## 📡 API Documentation
-
-### Base URL
-```
-http://localhost:6000
-```
-
-### Endpoints
-
-#### 1️⃣ **Health Check**
-
-```http
-GET /
-```
-
-**Response:**
-```json
-{
-  "message": "🤖 LangChain MCP API is running",
-  "version": "1.0.0"
-}
-```
-
----
-
-#### 2️⃣ **Chat (Non-Streaming)**
-
-```http
-POST /chat
-```
-
-**Request Body:**
-```json
-{
-  "credential": {
-    "provider": "openai",
-    "api_key": "sk-...",
-    "model": "gpt-4o-mini",
-    "set": {
-      "temperature": 0.7,
-      "max_tokens": 1000,
-      "max_context_messages": 4
-    }
-  },
-  "system_prompt": "You are a helpful assistant",
-  "input": "What is the weather in Jakarta?",
-  "servers": ["http://localhost:3001"]
-}
-```
-
-**Response:**
-```json
-{
-  "input": "What is the weather in Jakarta?",
-  "messages": [
-    {
-      "role": "assistant",
-      "content": "I'll check the weather for you...",
-      "tool_calls": [...]
-    },
-    {
-      "role": "tool",
-      "content": "{\"temperature\": 28, \"condition\": \"sunny\"}",
-      "name": "getWeather"
-    }
-  ],
-  "message": "The weather in Jakarta is sunny with a temperature of 28°C."
-}
-```
-
----
-
-#### 3️⃣ **Chat Stream (SSE)**
-
-```http
-POST /chat/stream
-```
-
-**Request Body:** *(same as `/chat`)*
-
-**Response:** Server-Sent Events stream
-
-```
-data: {"type":"start","timestamp":"2024-02-04T09:00:00Z","input":"What is the weather?"}
-
-data: {"type":"servers_checked","available_servers":["http://localhost:3001"],"total_servers":1}
-
-data: {"type":"thinking_start","timestamp":"2024-02-04T09:00:01Z"}
-
-data: {"type":"thinking_chunk","chunk":"I need to check the weather...","is_final":false}
-
-data: {"type":"message_start","timestamp":"2024-02-04T09:00:02Z"}
-
-data: {"type":"message_chunk","chunk":"The weather is ","is_final":false}
-
-data: {"type":"message_chunk","chunk":"sunny, 28°C","is_final":true}
-
-data: {"type":"done","done":true,"total_steps":3,"timestamp":"2024-02-04T09:00:03Z"}
-```
-
----
-
-## 🎯 Examples
-
-### Example 1: OpenAI with Tools
-
-```bash
-curl -X POST http://localhost:6000/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credential": {
-      "provider": "openai",
-      "api_key": "sk-proj-...",
-      "model": "gpt-4o-mini"
-    },
-    "input": "What is 25 + 37?",
-    "servers": ["http://localhost:3001"]
-  }'
-```
-
-### Example 2: Claude Streaming
-
-```bash
-curl -N -X POST http://localhost:6000/chat/stream \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credential": {
-      "provider": "claude",
-      "api_key": "sk-ant-...",
-      "model": "claude-3-5-sonnet-20241022"
-    },
-    "input": "Explain quantum computing in simple terms",
-    "servers": []
-  }'
-```
-
-### Example 3: Local Llama.cpp
-
-```bash
-curl -X POST http://localhost:6000/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credential": {
-      "provider": "llama_cpp",
-      "url": "http://localhost:8080",
-      "model": "gpt-oss-20b.gguf",
-      "set": {
-        "temperature": 0.7,
-        "max_context_messages": 4
-      }
-    },
-    "system_prompt": "You are a helpful assistant. Be concise.",
-    "input": "What is the capital of France?",
-    "servers": ["http://localhost:3001"]
-  }'
-```
-
-### Example 4: Ollama with Custom Settings
-
-```bash
-curl -X POST http://localhost:6000/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credential": {
-      "provider": "ollama",
-      "url": "http://localhost:11434",
-      "model": "llama3.2",
-      "set": {
-        "temperature": 0.8,
-        "max_tokens": 500
-      }
-    },
-    "input": "Write a haiku about programming",
-    "servers": []
-  }'
-```
-
----
-
 ## 🐳 Docker
 
 ### Option 1: Pull from Docker Hub (Recommended)
@@ -289,92 +86,119 @@ docker-compose up -d
 
 ---
 
-### Option 2: Manual Build via CLI
+## 📡 API Documentation
 
-Build the image manually from source:
-
-```bash
-# Clone the repository (if not already cloned)
-git clone https://github.com/jefripunza/langchain-mcp-api.git
-cd langchain-mcp-api
-
-# Build the Docker image
-docker build -t langchain-mcp-api:local .
-
-# Run the container
-docker run -d \
-  --name langchain-mcp-api \
-  -p 6000:6000 \
-  langchain-mcp-api:local
+### Base URL
+```
+http://localhost:6000
 ```
 
-**With custom port:**
-```bash
-docker run -d \
-  --name langchain-mcp-api \
-  -p 8080:6000 \
-  -e PORT=6000 \
-  langchain-mcp-api:local
+### Endpoints
+
+#### 1️⃣ **Hello World**
+
+```http
+GET /
+```
+
+**Response:**
+```json
+{
+  "message": "🤖 LangChain MCP API is running",
+  "version": "1.0.0"
+}
 ```
 
 ---
 
-### Option 3: Build with Docker Compose
+#### 2️⃣ **Health Check**
 
-Create a `docker-compose.yml` file:
-
-```yaml
-version: '3.8'
-services:
-  langchain-mcp-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: langchain-mcp-api
-    ports:
-      - "6000:6000"
-    environment:
-      - PORT=6000
-    restart: unless-stopped
-    # Optional: Add volume for logs
-    # volumes:
-    #   - ./logs:/app/logs
+```http
+GET /health
 ```
 
-Build and run:
-```bash
-# Build and start
-docker-compose up -d --build
-
-# View logs
-docker-compose logs -f
-
-# Stop
-docker-compose down
+**Response:**
+```json
+{
+  "status": "ok"
+}
 ```
 
 ---
 
-### Docker Commands Reference
+#### 3️⃣ **Chat (Non-Streaming)**
 
-```bash
-# Check container status
-docker ps
+```http
+POST /chat
+```
 
-# View logs
-docker logs langchain-mcp-api
+**Request Body:**
+```json
+{
+  "credential": {
+    "provider": "openai",
+    "api_key": "sk-...",
+    "model": "gpt-4o-mini",
+    "set": {
+      "temperature": 0.7,
+      "max_tokens": 1000,
+      "max_context_messages": 4
+    }
+  },
+  "system_prompt": "You are a helpful assistant",
+  "input": "What is the weather in Jakarta?",
+  "servers": ["http://localhost:4000"]
+}
+```
 
-# Follow logs in real-time
-docker logs -f langchain-mcp-api
+**Response:**
+```json
+{
+  "input": "What is the weather in Jakarta?",
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "I'll check the weather for you...",
+      "tool_calls": [...]
+    },
+    {
+      "role": "tool",
+      "content": "{\"temperature\": 28, \"condition\": \"sunny\"}",
+      "name": "getWeather"
+    }
+  ],
+  "message": "The weather in Jakarta is sunny with a temperature of 28°C."
+}
+```
 
-# Stop container
-docker stop langchain-mcp-api
+---
 
-# Remove container
-docker rm langchain-mcp-api
+#### 4️⃣ **Chat Stream (SSE)**
 
-# Remove image
-docker rmi jefriherditriyanto/langchain-mcp-api:latest
+```http
+POST /chat/stream
+```
+
+**Request Body:** *(same as `/chat`)*
+
+**Response:** Server-Sent Events stream
+
+```
+data: {"type":"start","timestamp":"2024-02-04T09:00:00Z","input":"What is the weather?"}
+
+data: {"type":"servers_checked","available_servers":["http://localhost:4000"],"total_servers":1}
+
+data: {"type":"thinking_start","timestamp":"2024-02-04T09:00:01Z"}
+
+data: {"type":"thinking_chunk","chunk":"I need to check the weather...","is_final":false}
+
+data: {"type":"message_start","timestamp":"2024-02-04T09:00:02Z"}
+
+data: {"type":"message_chunk","chunk":"The weather is ","is_final":false}
+
+data: {"type":"message_chunk","chunk":"sunny, 28°C","is_final":true}
+
+data: {"type":"done","done":true,"total_steps":3,"timestamp":"2024-02-04T09:00:03Z"}
 ```
 
 ---
@@ -383,14 +207,14 @@ docker rmi jefriherditriyanto/langchain-mcp-api:latest
 
 ### Provider Settings
 
-| Provider | Required Fields | Optional Fields |
-|----------|----------------|-----------------|
-| **OpenAI** | `api_key`, `model` | `temperature`, `max_tokens`, `top_p` |
-| **Claude** | `api_key`, `model` | `temperature`, `max_tokens`, `top_p` |
-| **OpenRouter** | `api_key`, `model` | `temperature`, `max_tokens` |
-| **Ollama** | `url`, `model` | `temperature` |
-| **Llama.cpp** | `url`, `model` | `temperature`, `max_tokens` |
-| **vLLM** | `url`, `model` | `temperature`, `max_tokens` |
+| Provider | Key | Required Fields | Optional Fields |
+|----------|-----|-----------------|-----------------|
+| **OpenAI** | `openai` | `api_key`, `model` | `temperature`, `max_tokens`, `top_p` |
+| **Claude** | `claude` | `api_key`, `model` | `temperature`, `max_tokens`, `top_p` |
+| **OpenRouter** | `openrouter` | `api_key`, `model` | `temperature`, `max_tokens` |
+| **Ollama** | `ollama` | `url`, `model` | `temperature` |
+| **Llama.cpp** | `llama_cpp` | `url`, `model` | `temperature`, `max_tokens` |
+| **vLLM** | `vllm` | `url`, `model` | `temperature`, `max_tokens` |
 
 ### Advanced Settings
 
@@ -500,9 +324,11 @@ app.listen(4000, () => {
   console.log("🧠 MCP Server running on http://localhost:4000");
 });
 app.use(morgan("dev"));
+
+// REQUIRED!
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
-// MCP-style: list tools
+// MCP-style: list tools, REQUIRED!
 app.get("/mcp/tools", (_req, res) => {
   res.json(
     tools.map((t) => ({
@@ -513,7 +339,7 @@ app.get("/mcp/tools", (_req, res) => {
   );
 });
 
-// MCP-style: invoke tool
+// MCP-style: invoke tool, REQUIRED!
 app.post("/mcp/invoke", async (req, res) => {
   const { name, arguments: args } = req.body;
   const tool = findTool(name);
@@ -535,10 +361,11 @@ app.post("/mcp/invoke", async (req, res) => {
 #### 2️⃣ **Tool Registry** (`src/registry.ts`)
 
 ```typescript
+import type { Tool } from "../../types/tool";
 import { mathTools } from "./tools/math";
 import { weatherTools } from "./tools/weather";
 
-export const tools = [...mathTools, ...weatherTools];
+export const tools: Tool[] = [...mathTools, ...weatherTools];
 
 export function findTool(name: string) {
   return tools.find((t) => t.name === name);
@@ -555,7 +382,8 @@ import type { Tool } from "../../../types/tool";
 export const mathTools: Tool[] = [
   {
     name: "add",
-    description: "Add two numbers together",
+    description: "Add two numbers together", // add to main prompt, please detail!
+    // add to main prompt, please detail!
     parameters: {
       type: "object",
       properties: {
@@ -564,6 +392,7 @@ export const mathTools: Tool[] = [
       },
       required: ["a", "b"],
     },
+    // as controller / logic base
     handler: async ({ a, b }: { a: number; b: number }) => {
       console.log(`✅ MCP1 Math: ${a}+${b}=${a + b}`);
       return { result: a + b };
@@ -580,6 +409,7 @@ export const mathTools: Tool[] = [
 import { fetchWeatherApi } from "openmeteo";
 import type { Tool } from "../../../types/tool";
 
+// advance tool version
 export const weatherTools: Tool[] = [
   {
     name: "getWeather",
@@ -631,10 +461,11 @@ export const weatherTools: Tool[] = [
 
 ### MCP Protocol Endpoints
 
-Your MCP server must implement these two endpoints:
+Your MCP server must implement these three endpoints very required:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
+| `/health` | GET | Health check |
 | `/mcp/tools` | GET | List all available tools |
 | `/mcp/invoke` | POST | Execute a specific tool |
 
@@ -687,48 +518,6 @@ The LangChain API will automatically:
 1. Discover tools from your MCP server
 2. Let the LLM decide which tools to use
 3. Execute the tools and return results
-
----
-
-## �🛠️ Development
-
-### Project Structure
-
-```
-langchain-server/
-├── main.go              # Entry point
-├── agent/               # Agent logic
-│   └── agent.go
-├── handlers/            # HTTP handlers
-│   └── chat.go
-├── llm/                 # LLM factory
-│   └── factory.go
-├── mcp/                 # MCP tools loader
-│   └── loader.go
-├── types/               # Type definitions
-│   ├── request.go
-│   ├── agent.go
-│   ├── tool.go
-│   └── error.go
-└── utils/               # Utilities
-    └── utils.go
-```
-
-### Build for Production
-
-```bash
-# Build binary
-go build -o langchain-mcp-api
-
-# Run binary
-./langchain-mcp-api
-```
-
-### Run Tests
-
-```bash
-go test ./...
-```
 
 ---
 

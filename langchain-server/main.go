@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"langchain-mcp-api/handlers"
 
@@ -25,11 +26,14 @@ func main() {
 	app.Use(helmet.New())
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
-		Format: "[${requestID}] ${time} | ${status} | ${latency} | ${ip} | ${method} | ${path}\n",
+		Format: "[${requestID}] ${date} ${time} | ${status} | ${latency} | ${ip} | ${method} | ${path}\n",
 		CustomTags: map[string]logger.LogFunc{
 			"requestID": func(output logger.Buffer, c fiber.Ctx, data *logger.Data, extraParam string) (int, error) {
 				reqID := requestid.FromContext(c)
 				return output.WriteString(reqID)
+			},
+			"date": func(output logger.Buffer, c fiber.Ctx, data *logger.Data, extraParam string) (int, error) {
+				return output.WriteString(time.Now().Format("2006-01-02"))
 			},
 		},
 	}))

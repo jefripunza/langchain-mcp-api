@@ -1,17 +1,25 @@
-# MCP Server 2 - Advanced Tools
+# MCP Server 2 - Advanced Tools (Golang)
 
-MCP Server dengan koleksi tools yang lebih menarik dan berguna untuk berbagai keperluan.
+MCP Server dengan koleksi tools yang lebih menarik dan berguna untuk berbagai keperluan. Dibangun dengan Golang dan Fiber framework.
 
 ## Installation
 
 ```bash
-bun install
+go mod download
+```
+
+## Build
+
+```bash
+go build -o mcp-server main.go
 ```
 
 ## Run Server
 
 ```bash
-bun run src/index.ts
+go run main.go
+# atau
+./mcp-server
 ```
 
 Server akan berjalan di `http://localhost:4040`
@@ -84,7 +92,7 @@ curl -X POST http://localhost:4040/mcp/invoke \
 # Count words
 curl -X POST http://localhost:4040/mcp/invoke \
   -H "Content-Type: application/json" \
-  -d '{"name":"count_words","arguments":{"text":"Hello world from Bun"}}'
+  -d '{"name":"count_words","arguments":{"text":"Hello world from Golang"}}'
 
 # Get current time
 curl -X POST http://localhost:4040/mcp/invoke \

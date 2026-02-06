@@ -268,7 +268,7 @@ Build your own MCP (Model Context Protocol) server to provide custom tools for t
 
 ### Complete Example
 
-Full working example available at: [mcp-server-typescript](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-typescript)
+Full working example available at: [mcp-server-typescript](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-typescript) [mcp-server-golang](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-golang)
 
 ### Quick Start
 

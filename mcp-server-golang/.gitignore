@@ -1,19 +1,20 @@
-# dependencies (bun install)
-node_modules
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+mcp-server
 
-# output
-out
-dist
-*.tgz
+# Test binary, built with `go test -c`
+*.test
 
-# code coverage
+# Output of the go coverage tool
+*.out
 coverage
-*.lcov
 
-# logs
-logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+# Go workspace file
+go.work
 
 # dotenv environment variable files
 .env
@@ -22,14 +23,15 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.production.local
 .env.local
 
-# caches
-.eslintcache
-.cache
-*.tsbuildinfo
+# logs
+logs
+*.log
 
 # IntelliJ based IDEs
 .idea
 
 # Finder (MacOS) folder config
 .DS_Store
-bun.lock
+
+# Vendor directory
+vendor/

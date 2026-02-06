@@ -2,7 +2,10 @@ package llm
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"net/http"
+	"time"
 
 	"langchain-mcp-api/types"
 
@@ -115,10 +118,26 @@ func CreateLangChainLLM(credential types.RequestChatCredential) (*LangChainClien
 		}
 
 		fmt.Printf("   Llama.cpp BaseURL: %s\n", *credential.URL)
+
+		// Create custom HTTP client with longer timeout and TLS skip verify
+		httpClient := &http.Client{
+			Timeout: 300 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 100,
+				IdleConnTimeout:     90 * time.Second,
+			},
+		}
+		fmt.Println("   Using custom HTTP client (timeout: 300s, TLS skip verify: true)")
+
 		llmInstance, err = openai.New(
 			openai.WithToken("llama_cpp"),
 			openai.WithModel(model),
 			openai.WithBaseURL(*credential.URL),
+			openai.WithHTTPClient(httpClient),
 		)
 
 	case "vllm":

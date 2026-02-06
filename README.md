@@ -207,14 +207,14 @@ data: {"type":"done","done":true,"total_steps":3,"timestamp":"2024-02-04T09:00:0
 
 ### Provider Settings
 
-| Provider | Key | Required Fields | Optional Fields |
-|----------|-----|-----------------|-----------------|
-| **OpenAI** | `openai` | `api_key`, `model` | `temperature`, `max_tokens`, `top_p` |
-| **Claude** | `claude` | `api_key`, `model` | `temperature`, `max_tokens`, `top_p` |
-| **OpenRouter** | `openrouter` | `api_key`, `model` | `temperature`, `max_tokens` |
-| **Ollama** | `ollama` | `url`, `model` | `temperature` |
-| **Llama.cpp** | `llama_cpp` | `url`, `model` | `temperature`, `max_tokens` |
-| **vLLM** | `vllm` | `url`, `model` | `temperature`, `max_tokens` |
+| Provider       | Key          | Required Fields    |
+| -------------- | ------------ | ------------------ |
+| **OpenAI**     | `openai`     | `api_key`, `model` |
+| **Claude**     | `claude`     | `api_key`, `model` |
+| **OpenRouter** | `openrouter` | `api_key`, `model` |
+| **Ollama**     | `ollama`     | `url`, `model`     |
+| **Llama.cpp**  | `llama_cpp`  | `url`, `model`     |
+| **vLLM**       | `vllm`       | `url`, `model`     |
 
 ### Advanced Settings
 
@@ -254,7 +254,7 @@ The server provides detailed execution logs:
          1. getWeather({"lat": -7.7, "lon": 109.0})
       ⚙️  Executing tools...
          [1/1] Executing: getWeather
-            ✅ Success from http://localhost:3001
+            ✅ Success from http://localhost:4000
       ✅ Tools executed successfully (1 results)
 
 ✅ [INVOKE] Agent invocation completed
@@ -463,11 +463,11 @@ export const weatherTools: Tool[] = [
 
 Your MCP server must implement these three endpoints very required:
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check |
-| `/mcp/tools` | GET | List all available tools |
-| `/mcp/invoke` | POST | Execute a specific tool |
+| Endpoint      | Method | Description              |
+| ------------- | ------ | ------------------------ |
+| `/health`     | GET    | Health check             |
+| `/mcp/tools`  | GET    | List all available tools |
+| `/mcp/invoke` | POST   | Execute a specific tool  |
 
 ---
 
@@ -528,7 +528,7 @@ The LangChain API will automatically:
 
 - Ensure MCP server is running
 - Check server URL is correct
-- Verify health endpoint: `curl http://localhost:3001/health`
+- Verify health endpoint: `curl http://localhost:4000/health`
 </details>
 
 <details>
@@ -559,12 +559,12 @@ The LangChain API will automatically:
 
 ## 📊 Performance
 
-| Metric | Value |
-|--------|-------|
-| **Startup Time** | < 1s |
-| **Memory Usage** | ~50MB (idle) |
-| **Concurrent Requests** | 1000+ |
-| **Response Time** | < 100ms (without LLM) |
+| Metric                  | Value                 |
+| ----------------------- | --------------------- |
+| **Startup Time**        | < 1s                  |
+| **Memory Usage**        | ~50MB (idle)          |
+| **Concurrent Requests** | 1000+                 |
+| **Response Time**       | < 100ms (without LLM) |
 
 ---
 

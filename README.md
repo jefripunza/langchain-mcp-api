@@ -277,17 +277,17 @@ When `VERBOSE=true`, you'll see detailed execution traces:
 [1kqlh2PxHZZvLVLiBbdbWfdXQ9]   Input: What is the weather?
 
 [1kqlh2PxHZZvLVLiBbdbWfdXQ9]   🔁 [ITERATION 1/10]
-      📝 Built 2 messages for LLM
-      🤖 Calling LLM...
-      ✅ LLM Response (245 chars)
-      🔧 Detected 1 tool call(s)
-         1. getWeather({"lat": -7.7, "lon": 109.0})
-      ⚙️  Executing tools...
-         [1/1] Executing: getWeather
-            ✅ Success from http://localhost:4000
-      ✅ Tools executed successfully (1 results)
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      📝 Built 2 messages for LLM
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      🤖 Calling LLM...
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ✅ LLM Response (245 chars)
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      🔧 Detected 1 tool call(s)
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]         1. getWeather({"lat": -7.7, "lon": 109.0})
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ⚙️  Executing tools...
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]         [1/1] Executing: getWeather
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]            ✅ Success from http://localhost:4000
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ✅ Tools executed successfully (1 results)
 
-✅ [INVOKE] Agent invocation completed
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9] ✅ [INVOKE] Agent invocation completed
 ```
 
 ---

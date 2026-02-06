@@ -23,7 +23,8 @@ RUN go build -o langchain-mcp-api main.go
 # Run
 # =======================================================================================
 
-FROM debian:trixie-slim AS runner
+# FROM debian:trixie-slim AS runner
+FROM debian:bookworm-slim AS runner
 WORKDIR /app
 
 # copy compiled files

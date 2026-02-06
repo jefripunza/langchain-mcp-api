@@ -17,7 +17,7 @@ RUN go mod download
 
 # compile
 COPY ./langchain-server .
-RUN go build -o langchain-server main.go
+RUN go build -o langchain-mcp-api main.go
 
 # =======================================================================================
 # Run
@@ -27,7 +27,8 @@ FROM debian:trixie-slim AS runner
 WORKDIR /app
 
 # copy compiled files
-COPY --from=builder /app/langchain-server /app/langchain-server
+COPY --from=builder /app/langchain-mcp-api /app/langchain-mcp-api
 
 # run
-CMD ["./langchain-server"]
+EXPOSE 6000
+CMD ["./langchain-mcp-api"]

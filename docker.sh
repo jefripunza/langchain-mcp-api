@@ -17,4 +17,4 @@ fi
 
 # Run container baru
 echo "🚀 Running new container..."
-docker run -d --name $APP_NAME -p 6000:6000 $IMAGE_NAME
+docker run -d --name $APP_NAME -p 6006:6000 $IMAGE_NAME

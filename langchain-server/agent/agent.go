@@ -32,29 +32,30 @@ type LangChainAgent struct {
 }
 
 func CreateLangChainAgent(
+	requestID string,
 	credential types.RequestChatCredential,
 	mcpServers []string,
 	systemPrompt *string,
 ) (*LangChainAgent, error) {
-	fmt.Println("\n📦 [AGENT] Creating LangChain Agent...")
-	fmt.Printf("   Provider: %s\n", credential.Provider)
+	fmt.Printf("\n[%s]📦 [AGENT] Creating LangChain Agent...\n", requestID)
+	fmt.Printf("[%s]   Provider: %s\n", requestID, credential.Provider)
 	if credential.Model != nil {
-		fmt.Printf("   Model: %s\n", *credential.Model)
+		fmt.Printf("[%s]   Model: %s\n", requestID, *credential.Model)
 	}
-	fmt.Printf("   MCP Servers: %d\n", len(mcpServers))
+	fmt.Printf("[%s]   MCP Servers: %d\n", requestID, len(mcpServers))
 
 	langchainTools, toolDefs, err := mcp.LoadMCPToolsAsLangChain(mcpServers)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("   ✅ Loaded %d tools from MCP servers\n", len(langchainTools))
+	fmt.Printf("[%s]   ✅ Loaded %d tools from MCP servers\n", requestID, len(langchainTools))
 
 	llmClient, err := llm.CreateLangChainLLM(credential)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("\n🤖 Using LLM provider: %s", credential.Provider)
+	fmt.Printf("\n[%s]🤖 Using LLM provider: %s", requestID, credential.Provider)
 	if llmClient.SupportsTools {
 		fmt.Println(" (with native tool calling)")
 	} else {
@@ -72,7 +73,7 @@ func CreateLangChainAgent(
 	}
 
 	if llmClient.SupportsTools {
-		fmt.Println("   🔧 Initializing agent executor with native tool calling...")
+		fmt.Printf("[%s]   🔧 Initializing agent executor with native tool calling...\n", requestID)
 		executor, err := agents.Initialize(
 			llmClient.LLM,
 			langchainTools,
@@ -83,18 +84,18 @@ func CreateLangChainAgent(
 			return nil, err
 		}
 		agent.executor = executor
-		fmt.Println("   ✅ Agent executor initialized")
+		fmt.Printf("[%s]   ✅ Agent executor initialized\n", requestID)
 	} else {
-		fmt.Println("   🔧 Using manual tool calling mode")
+		fmt.Printf("[%s]   🔧 Using manual tool calling mode\n", requestID)
 	}
 
-	fmt.Println("✅ [AGENT] Agent created successfully\n")
+	fmt.Printf("[%s]✅ [AGENT] Agent created successfully\n", requestID)
 	return agent, nil
 }
 
-func (a *LangChainAgent) Invoke(ctx context.Context, input string) (*types.AgentState, error) {
-	fmt.Println("\n🚀 [INVOKE] Starting agent invocation...")
-	fmt.Printf("   Input: %s\n", input)
+func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input string) (*types.AgentState, error) {
+	fmt.Printf("\n[%s]🚀 [INVOKE] Starting agent invocation...\n", requestID)
+	fmt.Printf("[%s]   Input: %s\n", requestID, input)
 
 	state := &types.AgentState{
 		Input:    input,
@@ -102,14 +103,14 @@ func (a *LangChainAgent) Invoke(ctx context.Context, input string) (*types.Agent
 	}
 
 	if a.supportsTools && a.executor != nil {
-		fmt.Println("   🔄 Using native tool calling executor...")
+		fmt.Printf("[%s]   🔄 Using native tool calling executor...\n", requestID)
 		result, err := chains.Run(ctx, a.executor, input)
 		if err != nil {
-			fmt.Printf("   ❌ Error: %v\n", err)
+			fmt.Printf("[%s]   ❌ Error: %v\n", requestID, err)
 			return nil, err
 		}
 
-		fmt.Printf("   ✅ Response: %s\n", result)
+		fmt.Printf("[%s]   ✅ Response: %s\n", requestID, result)
 		state.Message = &result
 		state.Messages = append(state.Messages, types.Message{
 			Role:    "assistant",
@@ -119,24 +120,24 @@ func (a *LangChainAgent) Invoke(ctx context.Context, input string) (*types.Agent
 		return state, nil
 	}
 
-	fmt.Println("   🔄 Using manual tool calling mode...")
+	fmt.Printf("[%s]   🔄 Using manual tool calling mode...\n", requestID)
 	maxIterations := 10
 	iteration := 0
 
 	for iteration < maxIterations {
 		iteration++
-		fmt.Printf("\n   🔁 [ITERATION %d/%d]\n", iteration, maxIterations)
+		fmt.Printf("\n[%s]   🔁 [ITERATION %d/%d]\n", requestID, iteration, maxIterations)
 
 		messages := a.buildMessages(state)
-		fmt.Printf("      📝 Built %d messages for LLM\n", len(messages))
-		fmt.Println("      🤖 Calling LLM...")
+		fmt.Printf("[%s]      📝 Built %d messages for LLM\n", requestID, len(messages))
+		fmt.Printf("[%s]      🤖 Calling LLM...\n", requestID)
 
 		content, err := a.llmClient.GenerateContent(ctx, messages)
 		if err != nil {
-			fmt.Printf("      ❌ LLM Error: %v\n", err)
+			fmt.Printf("[%s]      ❌ LLM Error: %v\n", requestID, err)
 			return nil, err
 		}
-		fmt.Printf("      ✅ LLM Response (%d chars)\n", len(content))
+		fmt.Printf("[%s]      ✅ LLM Response (%d chars)\n", requestID, len(content))
 
 		// Parse tool calls FIRST before truncation
 		response := &types.Message{
@@ -147,33 +148,33 @@ func (a *LangChainAgent) Invoke(ctx context.Context, input string) (*types.Agent
 		state.Messages = append(state.Messages, *response)
 
 		if len(response.ToolCalls) == 0 {
-			fmt.Println("      ✅ No tool calls detected - final response")
+			fmt.Printf("[%s]      ✅ No tool calls detected - final response\n", requestID)
 			lastMessage := response.Content
 			state.Message = &lastMessage
 			break
 		}
 
-		fmt.Printf("      🔧 Detected %d tool call(s)\n", len(response.ToolCalls))
+		fmt.Printf("[%s]      🔧 Detected %d tool call(s)\n", requestID, len(response.ToolCalls))
 		for i, tc := range response.ToolCalls {
-			fmt.Printf("         %d. %s(%v)\n", i+1, tc.Name, tc.Args)
+			fmt.Printf("[%s]         %d. %s(%v)\n", requestID, i+1, tc.Name, tc.Args)
 		}
 
-		fmt.Println("      ⚙️  Executing tools...")
+		fmt.Printf("[%s]      ⚙️  Executing tools...\n", requestID)
 		toolMessages, err := a.executeTools(ctx, response.ToolCalls)
 		if err != nil {
-			fmt.Printf("      ❌ Tool execution error: %v\n", err)
+			fmt.Printf("[%s]      ❌ Tool execution error: %v\n", requestID, err)
 			return nil, err
 		}
-		fmt.Printf("      ✅ Tools executed successfully (%d results)\n", len(toolMessages))
+		fmt.Printf("[%s]      ✅ Tools executed successfully (%d results)\n", requestID, len(toolMessages))
 
 		state.Messages = append(state.Messages, toolMessages...)
 	}
 
-	fmt.Println("\n✅ [INVOKE] Agent invocation completed")
+	fmt.Printf("[%s]✅ [INVOKE] Agent invocation completed\n", requestID)
 	return state, nil
 }
 
-func (a *LangChainAgent) StreamInvoke(ctx context.Context, input string, eventChan chan<- StreamEvent) error {
+func (a *LangChainAgent) StreamInvoke(requestID string, ctx context.Context, input string, eventChan chan<- StreamEvent) error {
 	defer close(eventChan)
 
 	state := &types.AgentState{

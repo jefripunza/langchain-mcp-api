@@ -8,8 +8,10 @@ import (
 	"langchain-mcp-api/agent"
 	"langchain-mcp-api/mcp"
 	"langchain-mcp-api/types"
+	"langchain-mcp-api/utils"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/requestid"
 )
 
 func validateChatRequest(body *types.RequestChatBody) error {
@@ -18,12 +20,12 @@ func validateChatRequest(body *types.RequestChatBody) error {
 	}
 
 	apiKeyProviders := []string{"openai", "claude", "openrouter"}
-	if contains(apiKeyProviders, body.Credential.Provider) && body.Credential.APIKey == nil {
+	if utils.Contains(apiKeyProviders, body.Credential.Provider) && body.Credential.APIKey == nil {
 		return types.NewErrorRequest("Missing api key", 401)
 	}
 
 	urlProviders := []string{"ollama", "llama_cpp", "vllm"}
-	if contains(urlProviders, body.Credential.Provider) && body.Credential.URL == nil {
+	if utils.Contains(urlProviders, body.Credential.Provider) && body.Credential.URL == nil {
 		return types.NewErrorRequest("Missing url", 401)
 	}
 
@@ -35,6 +37,9 @@ func validateChatRequest(body *types.RequestChatBody) error {
 }
 
 func ChatHandler(c fiber.Ctx) error {
+	requestID := requestid.FromContext(c)
+	fmt.Printf("[%s] [START REQUEST]\n", requestID)
+
 	var body types.RequestChatBody
 	if err := c.Bind().JSON(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -55,7 +60,7 @@ func ChatHandler(c fiber.Ctx) error {
 
 	availableServers := []string{}
 	if len(body.Servers) > 0 {
-		availableServers = mcp.CheckServers(body.Servers)
+		availableServers = mcp.CheckServers(requestID, body.Servers)
 		if len(availableServers) == 0 {
 			return c.Status(503).JSON(fiber.Map{
 				"error": "No MCP servers available",
@@ -63,7 +68,7 @@ func ChatHandler(c fiber.Ctx) error {
 		}
 	}
 
-	ag, err := agent.CreateLangChainAgent(body.Credential, availableServers, body.SystemPrompt)
+	ag, err := agent.CreateLangChainAgent(requestID, body.Credential, availableServers, body.SystemPrompt)
 	if err != nil {
 		if errReq, ok := err.(*types.ErrorRequest); ok {
 			return c.Status(errReq.Code).JSON(fiber.Map{
@@ -76,7 +81,7 @@ func ChatHandler(c fiber.Ctx) error {
 	}
 
 	ctx := c.Context()
-	result, err := ag.Invoke(ctx, body.Input)
+	result, err := ag.Invoke(requestID, ctx, body.Input)
 	if err != nil {
 		if errReq, ok := err.(*types.ErrorRequest); ok {
 			return c.Status(errReq.Code).JSON(fiber.Map{
@@ -100,10 +105,14 @@ func ChatHandler(c fiber.Ctx) error {
 		response.Message = lastMsg.Content
 	}
 
+	fmt.Printf("[%s] [END REQUEST]\n", requestID)
 	return c.JSON(response)
 }
 
 func ChatStreamHandler(c fiber.Ctx) error {
+	requestID := requestid.FromContext(c)
+	fmt.Printf("[%s] [START REQUEST]\n", requestID)
+
 	var body types.RequestChatBody
 	if err := c.Bind().JSON(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -138,7 +147,7 @@ func ChatStreamHandler(c fiber.Ctx) error {
 		"input":     body.Input,
 	})
 
-	availableServers := mcp.CheckServers(body.Servers)
+	availableServers := mcp.CheckServers(requestID, body.Servers)
 	if len(availableServers) == 0 {
 		sendEvent(map[string]interface{}{
 			"type":      "error",
@@ -155,7 +164,7 @@ func ChatStreamHandler(c fiber.Ctx) error {
 		"total_servers":     len(body.Servers),
 	})
 
-	ag, err := agent.CreateLangChainAgent(body.Credential, availableServers, body.SystemPrompt)
+	ag, err := agent.CreateLangChainAgent(requestID, body.Credential, availableServers, body.SystemPrompt)
 	if err != nil {
 		errorCode := 500
 		if errReq, ok := err.(*types.ErrorRequest); ok {
@@ -174,7 +183,7 @@ func ChatStreamHandler(c fiber.Ctx) error {
 	ctx := c.Context()
 
 	go func() {
-		if err := ag.StreamInvoke(ctx, body.Input, eventChan); err != nil {
+		if err := ag.StreamInvoke(requestID, ctx, body.Input, eventChan); err != nil {
 			errorCode := 500
 			if errReq, ok := err.(*types.ErrorRequest); ok {
 				errorCode = errReq.Code
@@ -204,13 +213,4 @@ func ChatStreamHandler(c fiber.Ctx) error {
 	}
 
 	return nil
-}
-
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }

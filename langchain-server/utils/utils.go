@@ -17,3 +17,12 @@ func IntPtr(i int) *int {
 func Float64Ptr(f float64) *float64 {
 	return &f
 }
+
+func Contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}

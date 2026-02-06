@@ -45,6 +45,5 @@ func main() {
 	app.Post("/chat", handlers.ChatHandler)
 	app.Post("/chat/stream", handlers.ChatStreamHandler)
 
-	log.Println("🤖 LangChain MCP API running on http://localhost:6000")
 	log.Fatal(app.Listen("0.0.0.0:6000"))
 }

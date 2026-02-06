@@ -132,27 +132,27 @@ func InvokeTool(mcpURL string, toolName string, args map[string]interface{}) (in
 	return result, nil
 }
 
-func CheckServers(mcpServers []string) []string {
-	fmt.Println("\n🏥 [MCP] Checking server health...")
+func CheckServers(requestID string, mcpServers []string) []string {
+	fmt.Printf("\n[%s]🏥 [MCP] Checking server health...\n", requestID)
 	var availableServers []string
 
 	for idx, serverURL := range mcpServers {
-		fmt.Printf("   [%d/%d] Checking: %s\n", idx+1, len(mcpServers), serverURL)
+		fmt.Printf("[%s]   [%d/%d] Checking: %s\n", requestID, idx+1, len(mcpServers), serverURL)
 		resp, err := http.Get(serverURL + "/health")
 		if err != nil {
-			fmt.Printf("      ❌ Not available: %v\n", err)
+			fmt.Printf("[%s]      ❌ Not available: %v\n", requestID, err)
 			continue
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode == http.StatusOK {
 			availableServers = append(availableServers, serverURL)
-			fmt.Printf("      ✅ Healthy (status %d)\n", resp.StatusCode)
+			fmt.Printf("[%s]      ✅ Healthy (status %d)\n", requestID, resp.StatusCode)
 		} else {
-			fmt.Printf("      ⚠️  Unhealthy (status %d)\n", resp.StatusCode)
+			fmt.Printf("[%s]      ⚠️  Unhealthy (status %d)\n", requestID, resp.StatusCode)
 		}
 	}
 
-	fmt.Printf("\n✅ [MCP] Available servers: %d/%d\n", len(availableServers), len(mcpServers))
+	fmt.Printf("\n[%s]✅ [MCP] Available servers: %d/%d\n", requestID, len(availableServers), len(mcpServers))
 	return availableServers
 }

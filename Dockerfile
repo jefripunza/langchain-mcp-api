@@ -1,4 +1,4 @@
-FROM golang:trixie AS base
+FROM --platform=$BUILDPLATFORM golang:trixie AS base
 LABEL org.opencontainers.image.authors="Jefri Herdi Triyanto <jefriherditriyanto@gmail.com>"
 LABEL description="Langchain MCP API"
 
@@ -7,6 +7,10 @@ LABEL description="Langchain MCP API"
 # =======================================================================================
 
 FROM base AS builder
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
 WORKDIR /app
 
 # Copy go.mod
@@ -17,7 +21,7 @@ RUN go mod download
 
 # compile
 COPY ./langchain-server .
-RUN go build -o langchain-mcp-api main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o langchain-mcp-api main.go
 
 # =======================================================================================
 # Run

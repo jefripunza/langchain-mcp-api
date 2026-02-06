@@ -33,16 +33,16 @@ type LangChainClient struct {
 	SupportsTools bool
 }
 
-func CreateLangChainLLM(credential types.RequestChatCredential) (*LangChainClient, error) {
-	fmt.Println("\n🔧 [LLM] Creating LangChain LLM client...")
+func CreateLangChainLLM(requestID string, credential types.RequestChatCredential) (*LangChainClient, error) {
+	fmt.Printf("\n[%s]🔧 [LLM] Creating LangChain LLM client...\n", requestID)
 	provider := credential.Provider
 
 	model := DefaultModelsLangChain[provider]
 	if credential.Model != nil {
 		model = *credential.Model
 	}
-	fmt.Printf("   Provider: %s\n", provider)
-	fmt.Printf("   Model: %s\n", model)
+	fmt.Printf("[%s]   Provider: %s\n", requestID, provider)
+	fmt.Printf("[%s]   Model: %s\n", requestID, model)
 
 	client := &LangChainClient{
 		Provider: provider,
@@ -52,15 +52,15 @@ func CreateLangChainLLM(credential types.RequestChatCredential) (*LangChainClien
 	}
 
 	if credential.Set != nil {
-		fmt.Println("   Configuration:")
+		fmt.Printf("[%s]   Configuration:\n", requestID)
 		if credential.Set.Temperature != nil {
-			fmt.Printf("      Temperature: %.2f\n", *credential.Set.Temperature)
+			fmt.Printf("[%s]      Temperature: %.2f\n", requestID, *credential.Set.Temperature)
 		}
 		if credential.Set.MaxTokens != nil {
-			fmt.Printf("      MaxTokens: %d\n", *credential.Set.MaxTokens)
+			fmt.Printf("[%s]      MaxTokens: %d\n", requestID, *credential.Set.MaxTokens)
 		}
 		if credential.Set.TopP != nil {
-			fmt.Printf("      TopP: %.2f\n", *credential.Set.TopP)
+			fmt.Printf("[%s]      TopP: %.2f\n", requestID, *credential.Set.TopP)
 		}
 	}
 
@@ -117,7 +117,7 @@ func CreateLangChainLLM(credential types.RequestChatCredential) (*LangChainClien
 			return nil, types.NewErrorRequest("Llama.cpp URL is required", 400)
 		}
 
-		fmt.Printf("   Llama.cpp BaseURL: %s\n", *credential.URL)
+		fmt.Printf("[%s]   Llama.cpp BaseURL: %s\n", requestID, *credential.URL)
 
 		// Create custom HTTP client with longer timeout and TLS skip verify
 		httpClient := &http.Client{
@@ -131,7 +131,7 @@ func CreateLangChainLLM(credential types.RequestChatCredential) (*LangChainClien
 				IdleConnTimeout:     90 * time.Second,
 			},
 		}
-		fmt.Println("   Using custom HTTP client (timeout: 300s, TLS skip verify: true)")
+		fmt.Printf("[%s]   Using custom HTTP client (timeout: 300s, TLS skip verify: true)\n", requestID)
 
 		llmInstance, err = openai.New(
 			openai.WithToken("llama_cpp"),
@@ -156,48 +156,48 @@ func CreateLangChainLLM(credential types.RequestChatCredential) (*LangChainClien
 	}
 
 	if err != nil {
-		fmt.Printf("   ❌ Failed to create LLM: %v\n", err)
+		fmt.Printf("[%s]   ❌ Failed to create LLM: %v\n", requestID, err)
 		return nil, err
 	}
 
-	fmt.Println("   LLM client created successfully")
+	fmt.Printf("[%s]   LLM client created successfully\n", requestID)
 	client.LLM = llmInstance
-	fmt.Printf("\n [LLM] LangChain LLM client created (provider: %s, model: %s)\n", client.Provider, client.Model)
+	fmt.Printf("\n[%s] [LLM] LangChain LLM client created (provider: %s, model: %s)\n", requestID, client.Provider, client.Model)
 	return client, nil
 }
 
-func (c *LangChainClient) GenerateContent(ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (string, error) {
-	fmt.Printf("\n [LLM] GenerateContent called (provider: %s, model: %s)\n", c.Provider, c.Model)
-	fmt.Printf("   Messages: %d\n", len(messages))
+func (c *LangChainClient) GenerateContent(requestID string, ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (string, error) {
+	fmt.Printf("\n[%s] [LLM] GenerateContent called (provider: %s, model: %s)\n", requestID, c.Provider, c.Model)
+	fmt.Printf("[%s]   Messages: %d\n", requestID, len(messages))
 
 	// Build call options from config
 	callOpts := c.buildCallOptions()
 	callOpts = append(callOpts, options...)
-	fmt.Printf("   CallOptions: %d\n", len(callOpts))
+	fmt.Printf("[%s]   CallOptions: %d\n", requestID, len(callOpts))
 
 	result, err := c.LLM.GenerateContent(ctx, messages, callOpts...)
 	if err != nil {
-		fmt.Printf("   ❌ GenerateContent error: %v\n", err)
-		fmt.Printf("   Provider: %s, Model: %s\n", c.Provider, c.Model)
+		fmt.Printf("[%s]   ❌ GenerateContent error: %v\n", requestID, err)
+		fmt.Printf("[%s]   Provider: %s, Model: %s\n", requestID, c.Provider, c.Model)
 		if c.URL != nil {
-			fmt.Printf("   Configured URL: %s\n", *c.URL)
+			fmt.Printf("[%s]   Configured URL: %s\n", requestID, *c.URL)
 		}
 		return "", err
 	}
 
 	if len(result.Choices) == 0 {
-		fmt.Println("   No response choices from LLM")
+		fmt.Printf("[%s]   No response choices from LLM\n", requestID)
 		return "", fmt.Errorf("no response from LLM")
 	}
 
 	content := result.Choices[0].Content
-	fmt.Printf("   Response received (%d chars)\n", len(content))
+	fmt.Printf("[%s]   Response received (%d chars)\n", requestID, len(content))
 	return content, nil
 }
 
-func (c *LangChainClient) StreamGenerateContent(ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (<-chan string, <-chan error) {
-	fmt.Printf("\n [LLM] StreamGenerateContent called (provider: %s, model: %s)\n", c.Provider, c.Model)
-	fmt.Printf("   Messages: %d\n", len(messages))
+func (c *LangChainClient) StreamGenerateContent(requestID string, ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (<-chan string, <-chan error) {
+	fmt.Printf("\n[%s] [LLM] StreamGenerateContent called (provider: %s, model: %s)\n", requestID, c.Provider, c.Model)
+	fmt.Printf("[%s]   Messages: %d\n", requestID, len(messages))
 
 	contentChan := make(chan string, 100)
 	errChan := make(chan error, 1)
@@ -214,7 +214,7 @@ func (c *LangChainClient) StreamGenerateContent(ctx context.Context, messages []
 		callOpts = append(callOpts, llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
 			chunkCount++
 			if chunkCount%10 == 0 {
-				fmt.Printf("   📦 Received %d chunks...\n", chunkCount)
+				fmt.Printf("[%s]   📦 Received %d chunks...\n", requestID, chunkCount)
 			}
 			contentChan <- string(chunk)
 			return nil
@@ -222,10 +222,10 @@ func (c *LangChainClient) StreamGenerateContent(ctx context.Context, messages []
 
 		_, err := c.LLM.GenerateContent(ctx, messages, callOpts...)
 		if err != nil {
-			fmt.Printf("   ❌ Streaming error: %v\n", err)
+			fmt.Printf("[%s]   ❌ Streaming error: %v\n", requestID, err)
 			errChan <- err
 		} else {
-			fmt.Printf("   ✅ Streaming completed (%d total chunks)\n", chunkCount)
+			fmt.Printf("[%s]   ✅ Streaming completed (%d total chunks)\n", requestID, chunkCount)
 		}
 	}()
 

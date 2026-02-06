@@ -47,22 +47,22 @@ func (t *MCPTool) Call(ctx context.Context, input string) (string, error) {
 	return string(resultJSON), nil
 }
 
-func LoadMCPToolsAsLangChain(mcpServers []string) ([]tools.Tool, []types.Tool, error) {
-	fmt.Println("\n🔌 [MCP] Loading tools from MCP servers...")
+func LoadMCPToolsAsLangChain(requestID string, mcpServers []string) ([]tools.Tool, []types.Tool, error) {
+	fmt.Printf("\n[%s]🔌 [MCP] Loading tools from MCP servers...\n", requestID)
 	var langchainTools []tools.Tool
 	var toolDefs []types.Tool
 
 	for idx, mcpURL := range mcpServers {
-		fmt.Printf("   [%d/%d] Fetching from: %s\n", idx+1, len(mcpServers), mcpURL)
+		fmt.Printf("[%s]   [%d/%d] Fetching from: %s\n", requestID, idx+1, len(mcpServers), mcpURL)
 		serverTools, err := fetchToolsFromServer(mcpURL)
 		if err != nil {
 			fmt.Printf("      ❌ Failed: %v\n", err)
 			continue
 		}
-		fmt.Printf("      ✅ Loaded %d tools\n", len(serverTools))
+		fmt.Printf("[%s]      ✅ Loaded %d tools\n", requestID, len(serverTools))
 
 		for _, toolDef := range serverTools {
-			fmt.Printf("         - %s: %s\n", toolDef.Name, toolDef.Description)
+			fmt.Printf("[%s]         - %s: %s\n", requestID, toolDef.Name, toolDef.Description)
 			mcpTool := &MCPTool{
 				name:        toolDef.Name,
 				description: toolDef.Description,
@@ -74,7 +74,7 @@ func LoadMCPToolsAsLangChain(mcpServers []string) ([]tools.Tool, []types.Tool, e
 		}
 	}
 
-	fmt.Printf("\n✅ [MCP] Total tools loaded: %d\n", len(langchainTools))
+	fmt.Printf("\n[%s]✅ [MCP] Total tools loaded: %d\n", requestID, len(langchainTools))
 	return langchainTools, toolDefs, nil
 }
 

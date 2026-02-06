@@ -44,13 +44,13 @@ func CreateLangChainAgent(
 	}
 	fmt.Printf("[%s]   MCP Servers: %d\n", requestID, len(mcpServers))
 
-	langchainTools, toolDefs, err := mcp.LoadMCPToolsAsLangChain(mcpServers)
+	langchainTools, toolDefs, err := mcp.LoadMCPToolsAsLangChain(requestID, mcpServers)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Printf("[%s]   ✅ Loaded %d tools from MCP servers\n", requestID, len(langchainTools))
 
-	llmClient, err := llm.CreateLangChainLLM(credential)
+	llmClient, err := llm.CreateLangChainLLM(requestID, credential)
 	if err != nil {
 		return nil, err
 	}
@@ -128,11 +128,11 @@ func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input str
 		iteration++
 		fmt.Printf("\n[%s]   🔁 [ITERATION %d/%d]\n", requestID, iteration, maxIterations)
 
-		messages := a.buildMessages(state)
+		messages := a.buildMessages(requestID, state)
 		fmt.Printf("[%s]      📝 Built %d messages for LLM\n", requestID, len(messages))
 		fmt.Printf("[%s]      🤖 Calling LLM...\n", requestID)
 
-		content, err := a.llmClient.GenerateContent(ctx, messages)
+		content, err := a.llmClient.GenerateContent(requestID, ctx, messages)
 		if err != nil {
 			fmt.Printf("[%s]      ❌ LLM Error: %v\n", requestID, err)
 			return nil, err
@@ -160,7 +160,7 @@ func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input str
 		}
 
 		fmt.Printf("[%s]      ⚙️  Executing tools...\n", requestID)
-		toolMessages, err := a.executeTools(ctx, response.ToolCalls)
+		toolMessages, err := a.executeTools(requestID, ctx, response.ToolCalls)
 		if err != nil {
 			fmt.Printf("[%s]      ❌ Tool execution error: %v\n", requestID, err)
 			return nil, err
@@ -233,8 +233,8 @@ func (a *LangChainAgent) StreamInvoke(requestID string, ctx context.Context, inp
 		}
 		stepCount++
 
-		messages := a.buildMessages(state)
-		contentChan, errChan := a.llmClient.StreamGenerateContent(ctx, messages)
+		messages := a.buildMessages(requestID, state)
+		contentChan, errChan := a.llmClient.StreamGenerateContent(requestID, ctx, messages)
 
 		accumulatedContent := ""
 		isInThinkingMode := false
@@ -436,7 +436,7 @@ func (a *LangChainAgent) StreamInvoke(requestID string, ctx context.Context, inp
 			stepCount++
 		}
 
-		toolMessages, err := a.executeTools(ctx, response.ToolCalls)
+		toolMessages, err := a.executeTools(requestID, ctx, response.ToolCalls)
 		if err != nil {
 			return err
 		}
@@ -470,7 +470,7 @@ func (a *LangChainAgent) StreamInvoke(requestID string, ctx context.Context, inp
 	return nil
 }
 
-func (a *LangChainAgent) buildMessages(state *types.AgentState) []llms.MessageContent {
+func (a *LangChainAgent) buildMessages(requestID string, state *types.AgentState) []llms.MessageContent {
 	var messages []llms.MessageContent
 
 	// Add system prompt only once at the beginning
@@ -493,7 +493,7 @@ func (a *LangChainAgent) buildMessages(state *types.AgentState) []llms.MessageCo
 	startIdx := 0
 	if len(state.Messages) > maxHistoryMessages {
 		startIdx = len(state.Messages) - maxHistoryMessages
-		fmt.Printf("      ⚠️  Trimming message history: keeping last %d of %d messages\n", maxHistoryMessages, len(state.Messages))
+		fmt.Printf("[%s]      ⚠️  Trimming message history: keeping last %d of %d messages\n", requestID, maxHistoryMessages, len(state.Messages))
 	}
 
 	for _, msg := range state.Messages[startIdx:] {
@@ -599,26 +599,26 @@ func (a *LangChainAgent) parseManualToolCalls(response *types.Message) *types.Me
 	return response
 }
 
-func (a *LangChainAgent) executeTools(ctx context.Context, toolCalls []types.ToolCall) ([]types.Message, error) {
+func (a *LangChainAgent) executeTools(requestID string, ctx context.Context, toolCalls []types.ToolCall) ([]types.Message, error) {
 	var toolMessages []types.Message
 
 	for idx, call := range toolCalls {
-		fmt.Printf("         [%d/%d] Executing: %s\n", idx+1, len(toolCalls), call.Name)
+		fmt.Printf("[%s]         [%d/%d] Executing: %s\n", requestID, idx+1, len(toolCalls), call.Name)
 		var result interface{}
 		var err error
 
 		for _, serverURL := range a.mcpServers {
 			result, err = mcp.InvokeTool(serverURL, call.Name, call.Args)
 			if err == nil {
-				fmt.Printf("            ✅ Success from %s\n", serverURL)
+				fmt.Printf("[%s]            ✅ Success from %s\n", requestID, serverURL)
 				break
 			} else {
-				fmt.Printf("            ⚠️  Failed from %s: %v\n", serverURL, err)
+				fmt.Printf("[%s]            ⚠️  Failed from %s: %v\n", requestID, serverURL, err)
 			}
 		}
 
 		if err != nil {
-			fmt.Printf("            ❌ All servers failed for %s\n", call.Name)
+			fmt.Printf("[%s]            ❌ All servers failed for %s\n", requestID, call.Name)
 			return nil, err
 		}
 

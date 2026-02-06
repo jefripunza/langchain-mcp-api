@@ -57,11 +57,14 @@ func ChatHandler(c fiber.Ctx) error {
 		})
 	}
 
-	availableServers := mcp.CheckServers(body.Servers)
-	if len(availableServers) == 0 {
-		return c.Status(503).JSON(fiber.Map{
-			"error": "No MCP servers available",
-		})
+	availableServers := []string{}
+	if len(body.Servers) > 0 {
+		availableServers = mcp.CheckServers(body.Servers)
+		if len(availableServers) == 0 {
+			return c.Status(503).JSON(fiber.Map{
+				"error": "No MCP servers available",
+			})
+		}
 	}
 
 	ag, err := agent.CreateLangChainAgent(body.Credential, availableServers, body.SystemPrompt)

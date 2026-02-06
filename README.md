@@ -147,7 +147,7 @@ POST /chat
   },
   "system_prompt": "You are a helpful assistant",
   "input": "What is the weather in Jakarta?",
-  "servers": ["http://localhost:4000"]
+  "servers": ["http://host.docker.internal:4000"]
 }
 ```
 
@@ -186,7 +186,7 @@ POST /chat/stream
 ```
 data: {"type":"start","timestamp":"2024-02-04T09:00:00Z","input":"What is the weather?"}
 
-data: {"type":"servers_checked","available_servers":["http://localhost:4000"],"total_servers":1}
+data: {"type":"servers_checked","available_servers":["http://host.docker.internal:4000"],"total_servers":1}
 
 data: {"type":"thinking_start","timestamp":"2024-02-04T09:00:01Z"}
 
@@ -284,7 +284,7 @@ When `VERBOSE=true`, you'll see detailed execution traces:
 [1kqlh2PxHZZvLVLiBbdbWfdXQ9]         1. getWeather({"lat": -7.7, "lon": 109.0})
 [1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ⚙️  Executing tools...
 [1kqlh2PxHZZvLVLiBbdbWfdXQ9]         [1/1] Executing: getWeather
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]            ✅ Success from http://localhost:4000
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]            ✅ Success from http://host.docker.internal:4000
 [1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ✅ Tools executed successfully (1 results)
 
 [1kqlh2PxHZZvLVLiBbdbWfdXQ9] ✅ [INVOKE] Agent invocation completed
@@ -543,7 +543,7 @@ curl -X POST http://localhost:6000/chat \
       "model": "gpt-4o-mini"
     },
     "input": "What is 25 + 37?",
-    "servers": ["http://localhost:4000"]
+    "servers": ["http://host.docker.internal:4000"]
   }'
 ```
 

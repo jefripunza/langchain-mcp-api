@@ -31,10 +31,6 @@ func validateChatRequest(body *types.RequestChatBody) error {
 		return types.NewErrorRequest("Missing body request", 400)
 	}
 
-	if len(body.Servers) == 0 {
-		return types.NewErrorRequest("No MCP servers provided", 400)
-	}
-
 	return nil
 }
 

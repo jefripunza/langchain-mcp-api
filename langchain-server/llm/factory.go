@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"langchain-server/types"
+	"langchain-mcp-api/types"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/anthropic"

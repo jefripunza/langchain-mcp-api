@@ -1,4 +1,4 @@
-module langchain-server
+module langchain-mcp-api
 
 go 1.25.6
 

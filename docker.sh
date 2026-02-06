@@ -1,8 +1,8 @@
 #!/bin/bash
 
 
-APP_NAME="langchain-server-app"
-IMAGE_NAME="langchain-server"
+APP_NAME="langchain-mcp-api-app"
+IMAGE_NAME="langchain-mcp-api"
 
 # Build ulang image
 echo "🔨 Building Docker image..."

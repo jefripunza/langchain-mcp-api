@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"langchain-server/handlers"
+	"langchain-mcp-api/handlers"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"

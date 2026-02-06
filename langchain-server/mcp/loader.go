@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 
-	"langchain-server/types"
+	"langchain-mcp-api/types"
 
 	"github.com/tmc/langchaingo/tools"
 )

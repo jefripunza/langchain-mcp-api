@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"langchain-server/agent"
-	"langchain-server/mcp"
-	"langchain-server/types"
+	"langchain-mcp-api/agent"
+	"langchain-mcp-api/mcp"
+	"langchain-mcp-api/types"
 
 	"github.com/gofiber/fiber/v3"
 )

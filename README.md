@@ -57,8 +57,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/jefripunza/langchain-server.git
-cd langchain-server/langchain-server
+git clone https://github.com/jefripunza/langchain-mcp-api.git
+cd langchain-mcp-api/langchain-server
 
 # Install dependencies
 go mod tidy
@@ -252,31 +252,129 @@ curl -X POST http://localhost:6000/chat \
 
 ## 🐳 Docker
 
-### Build and Run
+### Option 1: Pull from Docker Hub (Recommended)
+
+Pull the pre-built image from Docker Hub:
 
 ```bash
-# Build image
-docker build -t langchain-server .
+# Pull the latest image
+docker pull jefriherditriyanto/langchain-mcp-api:latest
 
 # Run container
 docker run -d \
-  --name langchain-server \
+  --name langchain-mcp-api \
   -p 6000:6000 \
-  langchain-server
+  jefriherditriyanto/langchain-mcp-api:latest
 ```
 
-### Using Docker Compose
+**Using Docker Compose:**
 
 ```yaml
 version: '3.8'
 services:
-  langchain-server:
-    build: .
+  langchain-mcp-api:
+    image: jefriherditriyanto/langchain-mcp-api:latest
+    container_name: langchain-mcp-api
     ports:
       - "6000:6000"
     environment:
       - PORT=6000
     restart: unless-stopped
+```
+
+Run with:
+```bash
+docker-compose up -d
+```
+
+---
+
+### Option 2: Manual Build via CLI
+
+Build the image manually from source:
+
+```bash
+# Clone the repository (if not already cloned)
+git clone https://github.com/jefripunza/langchain-mcp-api.git
+cd langchain-mcp-api
+
+# Build the Docker image
+docker build -t langchain-mcp-api:local .
+
+# Run the container
+docker run -d \
+  --name langchain-mcp-api \
+  -p 6000:6000 \
+  langchain-mcp-api:local
+```
+
+**With custom port:**
+```bash
+docker run -d \
+  --name langchain-mcp-api \
+  -p 8080:6000 \
+  -e PORT=6000 \
+  langchain-mcp-api:local
+```
+
+---
+
+### Option 3: Build with Docker Compose
+
+Create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+services:
+  langchain-mcp-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: langchain-mcp-api
+    ports:
+      - "6000:6000"
+    environment:
+      - PORT=6000
+    restart: unless-stopped
+    # Optional: Add volume for logs
+    # volumes:
+    #   - ./logs:/app/logs
+```
+
+Build and run:
+```bash
+# Build and start
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
+```
+
+---
+
+### Docker Commands Reference
+
+```bash
+# Check container status
+docker ps
+
+# View logs
+docker logs langchain-mcp-api
+
+# Follow logs in real-time
+docker logs -f langchain-mcp-api
+
+# Stop container
+docker stop langchain-mcp-api
+
+# Remove container
+docker rm langchain-mcp-api
+
+# Remove image
+docker rmi jefriherditriyanto/langchain-mcp-api:latest
 ```
 
 ---
@@ -368,10 +466,10 @@ langchain-server/
 
 ```bash
 # Build binary
-go build -o langchain-server
+go build -o langchain-mcp-api
 
 # Run binary
-./langchain-server
+./langchain-mcp-api
 ```
 
 ### Run Tests

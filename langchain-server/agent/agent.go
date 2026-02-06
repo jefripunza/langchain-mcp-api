@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"langchain-server/llm"
-	"langchain-server/mcp"
-	"langchain-server/types"
+	"langchain-mcp-api/llm"
+	"langchain-mcp-api/mcp"
+	"langchain-mcp-api/types"
 
 	"github.com/tmc/langchaingo/agents"
 	"github.com/tmc/langchaingo/chains"

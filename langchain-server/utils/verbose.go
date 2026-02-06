@@ -11,7 +11,7 @@ var isVerbose bool
 func init() {
 	verbose := strings.ToLower(os.Getenv("VERBOSE"))
 	isVerbose = verbose == "true" || verbose == "1"
-	isVerbose = true // hard test
+	isVerbose = true // TODO: remove this
 }
 
 func IsVerbose() bool {

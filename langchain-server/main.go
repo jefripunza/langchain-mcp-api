@@ -25,8 +25,13 @@ func main() {
 	app.Use(helmet.New())
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
-		// Format: "${time} ${status} - ${method} ${path}\n",
-		// "[${time}] ${ip} ${status} - ${latency} ${method} ${path} ${error}"
+		Format: "[${requestID}] ${time} | ${status} | ${latency} | ${ip} | ${method} | ${path}\n",
+		CustomTags: map[string]logger.LogFunc{
+			"requestID": func(output logger.Buffer, c fiber.Ctx, data *logger.Data, extraParam string) (int, error) {
+				reqID := requestid.FromContext(c)
+				return output.WriteString(reqID)
+			},
+		},
 	}))
 
 	app.Get("/", func(c fiber.Ctx) error {

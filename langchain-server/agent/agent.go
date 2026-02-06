@@ -58,9 +58,9 @@ func CreateLangChainAgent(
 
 	utils.VerbosePrintf("\n[%s]🤖 Using LLM provider: %s", requestID, credential.Provider)
 	if llmClient.SupportsTools {
-		utils.VerbosePrintf("[%s] (with native tool calling)\n", requestID)
+		utils.VerbosePrintf(" (with native tool calling)\n")
 	} else {
-		utils.VerbosePrintf("[%s] (with manual tool calling)\n", requestID)
+		utils.VerbosePrintf(" (with manual tool calling)\n")
 	}
 
 	agent := &LangChainAgent{

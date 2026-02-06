@@ -14,6 +14,7 @@ import (
 )
 
 func main() {
+
 	app := fiber.New(fiber.Config{
 		CaseSensitive: true,
 		StrictRouting: true,
@@ -55,4 +56,5 @@ func main() {
 	app.Post("/chat/stream", handlers.ChatStreamHandler)
 
 	log.Fatal(app.Listen("0.0.0.0:6000"))
+
 }

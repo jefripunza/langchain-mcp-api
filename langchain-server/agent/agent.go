@@ -520,11 +520,31 @@ func (a *LangChainAgent) buildMessages(requestID string, state *types.AgentState
 func (a *LangChainAgent) buildReactPrompt() string {
 	var toolDescriptions []string
 	for _, tool := range a.toolDefs {
+		// Build parameter schema with required fields
+		paramsJSON, _ := json.Marshal(tool.Parameters)
+
+		// Build human-readable params list
 		var params []string
 		for key, prop := range tool.Parameters.Properties {
-			params = append(params, fmt.Sprintf("%s: %s", key, prop.Type))
+			isRequired := false
+			for _, req := range tool.Parameters.Required {
+				if req == key {
+					isRequired = true
+					break
+				}
+			}
+			reqMark := ""
+			if isRequired {
+				reqMark = " [REQUIRED]"
+			}
+			params = append(params, fmt.Sprintf("%s: %s%s", key, prop.Type, reqMark))
 		}
-		desc := fmt.Sprintf("- %s(%s): %s", tool.Name, strings.Join(params, ", "), tool.Description)
+
+		desc := fmt.Sprintf("- %s(%s): %s\n  Schema: %s",
+			tool.Name,
+			strings.Join(params, ", "),
+			tool.Description,
+			string(paramsJSON))
 		toolDescriptions = append(toolDescriptions, desc)
 	}
 
@@ -533,11 +553,12 @@ func (a *LangChainAgent) buildReactPrompt() string {
 %s
 
 RULES - READ CAREFULLY:
-1. BE CONCISE. Keep <thinking> under 50 words.
+1. BE CONCISE. Keep <thinking> under 100 words.
 2. Use tools when needed. Format: <thinking>brief reason</thinking><message>{"tool_name":"name","tool_args":{...}}</message>
 3. For final answers: <thinking>brief summary</thinking><message>your answer</message>
 4. NO extra text outside tags. NO repetition.
 5. IMPORTANT: When using tools, carefully check ALL required parameters. Provide EXACTLY the parameters needed - no missing, no extra. Match parameter names and types precisely.
+6. CRITICAL: After tool execution, CHECK THE RESULT. If result is SUCCESS (no "error" field), USE IT IMMEDIATELY in your final answer. DO NOT retry successful tools. Only retry if result contains "error" field (max 3 retries). If you get valid data, STOP calling tools and answer the user.
 
 EXAMPLE (tool call):
 <thinking>Need weather data for coordinates.</thinking>
@@ -571,6 +592,26 @@ func (a *LangChainAgent) parseManualToolCalls(response *types.Message) *types.Me
 	if matches == nil {
 		re2 := regexp.MustCompile(`to=(?:tool\.)?(\w+)\s+json\s*\n?\s*(\{[^}]+\})`)
 		matches = re2.FindStringSubmatch(content)
+	}
+
+	// Pattern 3: to=tool.toolname code<|message|>{...}
+	if matches == nil {
+		re3 := regexp.MustCompile(`to=tool\.(\w+)\s+code<\|message\|>(\{[^}]+\})`)
+		matches = re3.FindStringSubmatch(content)
+	}
+
+	// Pattern 4: <message>{...} after tool mention
+	if matches == nil {
+		re4 := regexp.MustCompile(`<message>(\{[^}]+\})`)
+		jsonMatch := re4.FindStringSubmatch(content)
+		if jsonMatch != nil {
+			// Try to find tool name from context
+			toolNameRe := regexp.MustCompile(`(?:to=tool\.|dns_lookup|tool_name["\s:]+)(\w+)`)
+			toolMatch := toolNameRe.FindStringSubmatch(content)
+			if toolMatch != nil {
+				matches = []string{"", toolMatch[1], jsonMatch[1]}
+			}
+		}
 	}
 
 	if matches != nil && len(matches) >= 3 {

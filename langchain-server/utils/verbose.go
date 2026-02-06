@@ -2,30 +2,21 @@ package utils
 
 import (
 	"fmt"
-	"os"
-	"strings"
+	"langchain-mcp-api/env"
 )
 
-var isVerbose bool
-
-func init() {
-	verbose := strings.ToLower(os.Getenv("VERBOSE"))
-	isVerbose = verbose == "true" || verbose == "1"
-	// isVerbose = true // TODO: remove this
-}
-
 func IsVerbose() bool {
-	return isVerbose
+	return env.IsVerbose
 }
 
 func VerbosePrintf(format string, args ...interface{}) {
-	if isVerbose {
+	if IsVerbose() {
 		fmt.Printf(format, args...)
 	}
 }
 
 func VerbosePrintln(args ...interface{}) {
-	if isVerbose {
+	if env.IsVerbose {
 		fmt.Println(args...)
 	}
 }

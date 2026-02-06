@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🤖 LangChain Server
+# 🤖 LangChain MCP API
 
 **High-Performance Go Implementation with Multi-Provider LLM Support**
 
@@ -89,7 +89,7 @@ GET /
 **Response:**
 ```json
 {
-  "message": "🤖 LangChain Server is running",
+  "message": "🤖 LangChain MCP API is running",
   "version": "1.0.0"
 }
 ```

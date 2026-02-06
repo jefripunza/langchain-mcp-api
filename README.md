@@ -438,7 +438,259 @@ The server provides detailed execution logs:
 
 ---
 
-## 🛠️ Development
+## � MCP Server Example
+
+Build your own MCP (Model Context Protocol) server to provide custom tools for the LangChain API.
+
+### Complete Example
+
+Full working example available at: [mcp-server-1](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-1)
+
+### Quick Start
+
+```bash
+# Clone and navigate to MCP server example
+cd mcp-server-1
+
+# Install dependencies
+bun install
+
+# Run the server
+bun run dev
+```
+
+Server will start at `http://localhost:4000` 🎉
+
+---
+
+### Project Structure
+
+```
+mcp-server-1/
+├── src/
+│   ├── index.ts         # Main server
+│   ├── registry.ts      # Tool registry
+│   └── tools/
+│       ├── math.ts      # Math tools
+│       └── weather.ts   # Weather tools
+├── package.json
+└── tsconfig.json
+```
+
+---
+
+### Implementation Guide
+
+#### 1️⃣ **Main Server** (`src/index.ts`)
+
+```typescript
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+
+import { tools, findTool } from "./registry";
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+app.use(helmet());
+
+app.listen(4000, () => {
+  console.log("🧠 MCP Server running on http://localhost:4000");
+});
+app.use(morgan("dev"));
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
+
+// MCP-style: list tools
+app.get("/mcp/tools", (_req, res) => {
+  res.json(
+    tools.map((t) => ({
+      name: t.name,
+      description: t.description,
+      parameters: t.parameters,
+    })),
+  );
+});
+
+// MCP-style: invoke tool
+app.post("/mcp/invoke", async (req, res) => {
+  const { name, arguments: args } = req.body;
+  const tool = findTool(name);
+
+  if (!tool) {
+    return res.status(404).json({ error: "Tool not found" });
+  }
+  if (!tool.handler) {
+    return res.status(400).json({ error: "Tool handler not found" });
+  }
+
+  const result = await tool.handler(args);
+  res.json(result);
+});
+```
+
+---
+
+#### 2️⃣ **Tool Registry** (`src/registry.ts`)
+
+```typescript
+import { mathTools } from "./tools/math";
+import { weatherTools } from "./tools/weather";
+
+export const tools = [...mathTools, ...weatherTools];
+
+export function findTool(name: string) {
+  return tools.find((t) => t.name === name);
+}
+```
+
+---
+
+#### 3️⃣ **Math Tool Example** (`src/tools/math.ts`)
+
+```typescript
+import type { Tool } from "../../../types/tool";
+
+export const mathTools: Tool[] = [
+  {
+    name: "add",
+    description: "Add two numbers together",
+    parameters: {
+      type: "object",
+      properties: {
+        a: { type: "number" },
+        b: { type: "number" },
+      },
+      required: ["a", "b"],
+    },
+    handler: async ({ a, b }: { a: number; b: number }) => {
+      console.log(`✅ MCP1 Math: ${a}+${b}=${a + b}`);
+      return { result: a + b };
+    },
+  },
+];
+```
+
+---
+
+#### 4️⃣ **Weather Tool Example** (`src/tools/weather.ts`)
+
+```typescript
+import { fetchWeatherApi } from "openmeteo";
+import type { Tool } from "../../../types/tool";
+
+export const weatherTools: Tool[] = [
+  {
+    name: "getWeather",
+    description: "Get weather data by coordinates",
+    parameters: {
+      type: "object",
+      properties: {
+        latitude: { type: "number" },
+        longitude: { type: "number" },
+      },
+      required: ["latitude", "longitude"],
+    },
+    handler: async ({
+      latitude,
+      longitude,
+    }: {
+      latitude: number;
+      longitude: number;
+    }) => {
+      const params = {
+        latitude,
+        longitude,
+        hourly: ["temperature_2m", "relative_humidity_2m", "rain"],
+        timezone: "auto",
+      };
+      
+      const responses = await fetchWeatherApi(
+        "https://api.open-meteo.com/v1/forecast",
+        params
+      );
+      
+      const response = responses[0];
+      const hourly = response.hourly()!;
+      
+      console.log(`✅ MCP1 Weather: ${latitude}, ${longitude}`);
+      return {
+        latitude,
+        longitude,
+        temperature: hourly.variables(0)!.valuesArray(),
+        humidity: hourly.variables(1)!.valuesArray(),
+        rain: hourly.variables(2)!.valuesArray(),
+      };
+    },
+  },
+];
+```
+
+---
+
+### MCP Protocol Endpoints
+
+Your MCP server must implement these two endpoints:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/mcp/tools` | GET | List all available tools |
+| `/mcp/invoke` | POST | Execute a specific tool |
+
+---
+
+### Testing Your MCP Server
+
+```bash
+# List available tools
+curl http://localhost:4000/mcp/tools
+
+# Invoke math tool
+curl -X POST http://localhost:4000/mcp/invoke \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "add",
+    "arguments": {"a": 5, "b": 3}
+  }'
+
+# Invoke weather tool
+curl -X POST http://localhost:4000/mcp/invoke \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "getWeather",
+    "arguments": {"latitude": -6.2, "longitude": 106.8}
+  }'
+```
+
+---
+
+### Using with LangChain API
+
+Once your MCP server is running, use it with the LangChain API:
+
+```bash
+curl -X POST http://localhost:6000/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credential": {
+      "provider": "openai",
+      "api_key": "sk-...",
+      "model": "gpt-4o-mini"
+    },
+    "input": "What is 25 + 37?",
+    "servers": ["http://localhost:4000"]
+  }'
+```
+
+The LangChain API will automatically:
+1. Discover tools from your MCP server
+2. Let the LLM decide which tools to use
+3. Execute the tools and return results
+
+---
+
+## �🛠️ Development
 
 ### Project Structure
 

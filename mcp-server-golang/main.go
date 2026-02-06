@@ -18,6 +18,10 @@ func main() {
 	app.Use(helmet.New())
 	app.Use(logger.New())
 
+	app.Get("/", func(c fiber.Ctx) error {
+		return c.JSON(fiber.Map{"message": "🧠 MCP Server Golang is running"})
+	})
+
 	app.Get("/health", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": "ok"})
 	})

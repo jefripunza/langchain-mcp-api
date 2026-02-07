@@ -298,7 +298,7 @@ Full working example available at:
 - [mcp-server-python-fastapi](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-python-fastapi) - Python/FastAPI implementation
 - [mcp-server-php-codeigniter](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-php-codeigniter) - PHP(FrankenPHP)/CodeIgniter implementation
 - [mcp-server-php-laravel](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-php-laravel) - PHP(FrankenPHP)/Laravel implementation
-- Coming Soon ... (Rust, Java, Kotlin, C#, Ruby, Serverless, N8N, Node-Red)
+- Coming Soon ... (Rust, Java, Kotlin, C#, Ruby, Serverless, N8N, Node-Red) 
 
 ### Quick Start
 

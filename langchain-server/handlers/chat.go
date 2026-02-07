@@ -120,34 +120,62 @@ func ChatHandler(c fiber.Ctx) error {
 		response.Message = lastMsg.Content
 	}
 
-	// Calculate iterations and tool calls
+	// Calculate iterations, tool calls, and accumulate token usage
 	totalIterations := 0
 	totalToolCalls := 0
+	totalInputTokens := 0
+	totalOutputTokens := 0
+	totalTokensSum := 0
+	var lastMetadata *types.ResponseMetadata
+	var lastUsageData *types.UsageMetadata
+
 	for _, msg := range result.Messages {
 		if msg.Role == "assistant" {
 			totalIterations++
 			totalToolCalls += len(msg.ToolCalls)
+
+			// Accumulate token usage from each assistant message
+			if msg.UsageData != nil {
+				totalInputTokens += msg.UsageData.InputTokens
+				totalOutputTokens += msg.UsageData.OutputTokens
+				totalTokensSum += msg.UsageData.TotalTokens
+				lastUsageData = msg.UsageData
+			}
+
+			// Keep last metadata
+			if msg.Metadata != nil {
+				lastMetadata = msg.Metadata
+			}
 		}
 	}
+
 	response.TotalIterations = totalIterations
 	response.ToolCallsCount = totalToolCalls
 
-	// Extract metadata from last assistant message
-	for i := len(result.Messages) - 1; i >= 0; i-- {
-		msg := result.Messages[i]
-		if msg.Role == "assistant" {
-			if msg.Metadata != nil {
-				response.Metadata = msg.Metadata
-				response.FinishReason = msg.Metadata.FinishReason
-			}
-			if msg.UsageData != nil {
-				response.UsageMetadata = msg.UsageData
-				response.TotalTokens = msg.UsageData.TotalTokens
-				response.InputTokens = msg.UsageData.InputTokens
-				response.OutputTokens = msg.UsageData.OutputTokens
-			}
-			break
+	// Set accumulated token counts
+	if totalTokensSum > 0 {
+		response.TotalTokens = totalTokensSum
+		response.InputTokens = totalInputTokens
+		response.OutputTokens = totalOutputTokens
+
+		// Create aggregated usage metadata
+		response.UsageMetadata = &types.UsageMetadata{
+			InputTokens:  totalInputTokens,
+			OutputTokens: totalOutputTokens,
+			TotalTokens:  totalTokensSum,
 		}
+
+		// Copy token details from last usage if available
+		if lastUsageData != nil {
+			response.UsageMetadata.InputTokenDetails = lastUsageData.InputTokenDetails
+			response.UsageMetadata.OutputTokenDetails = lastUsageData.OutputTokenDetails
+		}
+	}
+
+	// Set metadata from last assistant message
+	if lastMetadata != nil {
+		response.Metadata = lastMetadata
+		response.FinishReason = lastMetadata.FinishReason
 	}
 
 	// Calculate tokens per second

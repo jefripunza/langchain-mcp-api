@@ -133,18 +133,51 @@ func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input str
 		utils.VerbosePrintf("[%s]      📝 Built %d messages for LLM\n", requestID, len(messages))
 		utils.VerbosePrintf("[%s]      🤖 Calling LLM...\n", requestID)
 
-		content, err := a.llmClient.GenerateContent(requestID, ctx, messages)
+		content, llmResult, err := a.llmClient.GenerateContentWithMetadata(requestID, ctx, messages)
 		if err != nil {
 			utils.VerbosePrintf("[%s]      ❌ LLM Error: %v\n", requestID, err)
 			return nil, err
 		}
 		utils.VerbosePrintf("[%s]      ✅ LLM Response (%d chars)\n", requestID, len(content))
+		paramsJSON, _ := json.Marshal(llmResult)
+		fmt.Printf("llmResult: %s\n", string(paramsJSON))
 
 		// Parse tool calls FIRST before truncation
 		response := &types.Message{
 			Role:    "assistant",
 			Content: content,
 		}
+
+		// Extract metadata from LLM result if available
+		if llmResult != nil && len(llmResult.Choices) > 0 {
+			// Extract usage metadata if available
+			if llmResult.Choices[0].GenerationInfo != nil {
+				if tokenUsage, ok := llmResult.Choices[0].GenerationInfo["usage"].(map[string]interface{}); ok {
+					usageData := &types.UsageMetadata{}
+					if promptTokens, ok := tokenUsage["prompt_tokens"].(float64); ok {
+						usageData.InputTokens = int(promptTokens)
+					}
+					if completionTokens, ok := tokenUsage["completion_tokens"].(float64); ok {
+						usageData.OutputTokens = int(completionTokens)
+					}
+					if totalTokens, ok := tokenUsage["total_tokens"].(float64); ok {
+						usageData.TotalTokens = int(totalTokens)
+					}
+					response.UsageData = usageData
+				}
+			}
+
+			// Extract finish reason
+			if llmResult.Choices[0].StopReason != "" {
+				if response.Metadata == nil {
+					response.Metadata = &types.ResponseMetadata{}
+				}
+				response.Metadata.FinishReason = llmResult.Choices[0].StopReason
+				response.Metadata.ModelProvider = a.provider
+				response.Metadata.ModelName = a.llmClient.Model
+			}
+		}
+
 		response = a.parseManualToolCalls(response)
 		state.Messages = append(state.Messages, *response)
 

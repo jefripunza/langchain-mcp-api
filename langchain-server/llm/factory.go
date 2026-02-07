@@ -196,6 +196,37 @@ func (c *LangChainClient) GenerateContent(requestID string, ctx context.Context,
 	return content, nil
 }
 
+// GenerateContentWithMetadata returns both content and full response metadata
+func (c *LangChainClient) GenerateContentWithMetadata(requestID string, ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (string, *llms.ContentResponse, error) {
+	utils.VerbosePrintf("\n[%s] [LLM] GenerateContent called (provider: %s, model: %s)\n", requestID, c.Provider, c.Model)
+	utils.VerbosePrintf("[%s]   Messages: %d\n", requestID, len(messages))
+
+	// Build call options from config
+	callOpts := c.buildCallOptions()
+	callOpts = append(callOpts, options...)
+	utils.VerbosePrintf("[%s]   CallOptions: %d\n", requestID, len(callOpts))
+
+	result, err := c.LLM.GenerateContent(ctx, messages, callOpts...)
+	if err != nil {
+		utils.VerbosePrintf("[%s]   ❌ GenerateContent error: %v\n", requestID, err)
+		utils.VerbosePrintf("[%s]   Provider: %s, Model: %s\n", requestID, c.Provider, c.Model)
+		if c.URL != nil {
+			utils.VerbosePrintf("[%s]   Configured URL: %s\n", requestID, *c.URL)
+		}
+		return "", nil, err
+	}
+
+	if len(result.Choices) == 0 {
+		utils.VerbosePrintf("[%s]   No response choices from LLM\n", requestID)
+		return "", nil, fmt.Errorf("no response from LLM")
+	}
+
+	content := result.Choices[0].Content
+	utils.VerbosePrintf("[%s]   Response received (%d chars)\n", requestID, len(content))
+
+	return content, result, nil
+}
+
 func (c *LangChainClient) StreamGenerateContent(requestID string, ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (<-chan string, <-chan error) {
 	utils.VerbosePrintf("\n[%s] [LLM] StreamGenerateContent called (provider: %s, model: %s)\n", requestID, c.Provider, c.Model)
 	utils.VerbosePrintf("[%s]   Messages: %d\n", requestID, len(messages))

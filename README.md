@@ -293,11 +293,12 @@ Build your own MCP (Model Context Protocol) server to provide custom tools for t
 ### Complete Example
 
 Full working example available at:
-- [mcp-server-typescript](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-typescript) - TypeScript/Bun implementation
-- [mcp-server-golang](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-golang) - Golang implementation
-- [mcp-server-python](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-python) - Python/FastAPI implementation
-- [mcp-server-php-codeigniter](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-php-codeigniter) - PHP/CodeIgniter implementation
-- [mcp-server-php-laravel](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-php-laravel) - PHP/Laravel implementation
+- [mcp-server-bunts-express](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-bunts-express) - BunTS/Express implementation
+- [mcp-server-golang-gofiber](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-golang-gofiber) - Golang/GoFiber implementation
+- [mcp-server-python-fastapi](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-python-fastapi) - Python/FastAPI implementation
+- [mcp-server-php-codeigniter](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-php-codeigniter) - PHP(FrankenPHP)/CodeIgniter implementation
+- [mcp-server-php-laravel](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-php-laravel) - PHP(FrankenPHP)/Laravel implementation
+- Coming Soon ... (Rust, Java, Kotlin, C#, Ruby, Serverless, N8N, Node-Red)
 
 ### Quick Start
 

@@ -304,10 +304,10 @@ Full working example available at:
 
 ```bash
 # Clone MCP server example
-git clone https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-typescript
+git clone https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-bunts-express
 
 # Navigate to MCP server example
-cd mcp-server-typescript
+cd mcp-server-bunts-express
 
 # Install dependencies
 bun install
@@ -323,7 +323,7 @@ Server will start at `http://localhost:4000` 🎉
 ### Project Structure
 
 ```
-mcp-server-typescript/
+mcp-server-bunts-express/
 ├── src/
 │   ├── index.ts         # Main server
 │   ├── registry.ts      # Tool registry

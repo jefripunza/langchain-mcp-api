@@ -701,6 +701,11 @@ RESPONSE FORMAT:
 - Extract data from tool results and present it naturally
 - Example: If tool returns {"uuid":"abc-123"}, say "Here is your UUID: abc-123" NOT raw JSON
 
+THINKING RULES:
+- Keep your thinking BRIEF and CONCISE (max 2-3 sentences)
+- Long thinking slows down response time significantly
+- Focus only on essential reasoning, skip obvious steps
+
 TOOL EXECUTION RULES:
 1. BEFORE calling a tool, look at conversation history:
    - If you see {"result":{...}} with NO "error" = Tool already succeeded
@@ -754,7 +759,7 @@ func (a *LangChainAgent) parseManualToolCalls(response *types.Message) *types.Me
 	re := regexp.MustCompile(`\{\s*"tool_name"\s*:\s*"([^"]+)"\s*,\s*"tool_args"\s*:\s*(\{[^}]*\})\s*\}`)
 	matches := re.FindStringSubmatch(content)
 
-	if matches != nil && len(matches) >= 3 {
+	if len(matches) >= 3 {
 		toolName := matches[1]
 		argsStr := matches[2]
 

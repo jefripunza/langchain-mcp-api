@@ -200,7 +200,6 @@ func ChatHandler(c fiber.Ctx) error {
 
 	// Set metadata from last assistant message
 	if lastMetadata != nil {
-		response.Metadata = lastMetadata
 		response.FinishReason = lastMetadata.FinishReason
 	}
 

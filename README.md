@@ -286,65 +286,6 @@ data: {"type":"done","done":true,"total_steps":3,"timestamp":"2024-02-04T09:00:0
 
 ---
 
-## 🔍 Verbose Logging
-
-Control detailed execution logs with the `VERBOSE` environment variable:
-
-### Enable Verbose Mode
-
-```bash
-# Enable verbose logging (shows all requestID-prefixed logs)
-export VERBOSE=true
-go run main.go
-
-# Or with Docker
-docker run -d \
-  -p 6000:6000 \
-  -e VERBOSE=true \
-  jefriherditriyanto/langchain-mcp-api:latest
-```
-
-### Disable Verbose Mode
-
-```bash
-# Disable verbose logging (hides requestID-prefixed logs)
-export VERBOSE=false
-go run main.go
-
-# Or simply don't set the variable (defaults to false)
-go run main.go
-```
-
-### Example Verbose Output
-
-When `VERBOSE=true`, you'll see detailed execution traces:
-
-```
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9] [START REQUEST]
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]📦 [AGENT] Creating LangChain Agent...
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   Provider: llama_cpp
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   Model: gpt-oss-20b.gguf
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   ✅ Loaded 22 tools from MCP servers
-
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]🚀 [INVOKE] Starting agent invocation...
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   Input: What is the weather?
-
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   🔁 [ITERATION 1/10]
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      📝 Built 2 messages for LLM
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      🤖 Calling LLM...
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ✅ LLM Response (245 chars)
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      🔧 Detected 1 tool call(s)
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]         1. getWeather({"lat": -7.7, "lon": 109.0})
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ⚙️  Executing tools...
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]         [1/1] Executing: getWeather
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]            ✅ Success from http://host.docker.internal:4000
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ✅ Tools executed successfully (1 results)
-
-[1kqlh2PxHZZvLVLiBbdbWfdXQ9] ✅ [INVOKE] Agent invocation completed
-```
-
----
-
 ## � MCP Server Example
 
 Build your own MCP (Model Context Protocol) server to provide custom tools for the LangChain API.
@@ -609,6 +550,65 @@ The LangChain API will automatically:
 1. Discover tools from your MCP server
 2. Let the LLM decide which tools to use
 3. Execute the tools and return results
+
+---
+
+## 🔍 Verbose Logging
+
+Control detailed execution logs with the `VERBOSE` environment variable:
+
+### Enable Verbose Mode
+
+```bash
+# Enable verbose logging (shows all requestID-prefixed logs)
+export VERBOSE=true
+go run main.go
+
+# Or with Docker
+docker run -d \
+  -p 6000:6000 \
+  -e VERBOSE=true \
+  jefriherditriyanto/langchain-mcp-api:latest
+```
+
+### Disable Verbose Mode
+
+```bash
+# Disable verbose logging (hides requestID-prefixed logs)
+export VERBOSE=false
+go run main.go
+
+# Or simply don't set the variable (defaults to false)
+go run main.go
+```
+
+### Example Verbose Output
+
+When `VERBOSE=true`, you'll see detailed execution traces:
+
+```
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9] [START REQUEST]
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]📦 [AGENT] Creating LangChain Agent...
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   Provider: llama_cpp
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   Model: gpt-oss-20b.gguf
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   ✅ Loaded 22 tools from MCP servers
+
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]🚀 [INVOKE] Starting agent invocation...
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   Input: What is the weather?
+
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]   🔁 [ITERATION 1/10]
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      📝 Built 2 messages for LLM
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      🤖 Calling LLM...
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ✅ LLM Response (245 chars)
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      🔧 Detected 1 tool call(s)
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]         1. getWeather({"lat": -7.7, "lon": 109.0})
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ⚙️  Executing tools...
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]         [1/1] Executing: getWeather
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]            ✅ Success from http://host.docker.internal:4000
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9]      ✅ Tools executed successfully (1 results)
+
+[1kqlh2PxHZZvLVLiBbdbWfdXQ9] ✅ [INVOKE] Agent invocation completed
+```
 
 ---
 

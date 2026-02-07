@@ -288,7 +288,7 @@ data: {"type":"done","done":true,"total_steps":3,"timestamp":"2024-02-04T09:00:0
 
 ## � MCP Server Example
 
-Build your own MCP (Model Context Protocol) server to provide custom tools for the LangChain API.
+Build your own MCP (Model Context Protocol) server to provide custom tools for the LangChain MCP API.
 
 ### Complete Example
 
@@ -528,9 +528,9 @@ curl -X POST http://localhost:4000/mcp/invoke \
 
 ---
 
-### Using with LangChain API
+### Using with LangChain MCP API
 
-Once your MCP server is running, use it with the LangChain API:
+Once your MCP server is running, use it with the LangChain MCP API:
 
 ```bash
 curl -X POST http://localhost:6000/chat \
@@ -546,7 +546,7 @@ curl -X POST http://localhost:6000/chat \
   }'
 ```
 
-The LangChain API will automatically:
+The LangChain MCP API will automatically:
 1. Discover tools from your MCP server
 2. Let the LLM decide which tools to use
 3. Execute the tools and return results

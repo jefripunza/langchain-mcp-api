@@ -302,7 +302,8 @@ Full working example available at:
 - [mcp-server-typescript](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-typescript) - TypeScript/Bun implementation
 - [mcp-server-golang](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-golang) - Golang implementation
 - [mcp-server-python](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-python) - Python/FastAPI implementation
-- [mcp-server-php-code-igniter](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-php-code-igniter) - PHP/CodeIgniter implementation
+- [mcp-server-php-codeigniter](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-php-codeigniter) - PHP/CodeIgniter implementation
+- [mcp-server-php-laravel](https://github.com/jefripunza/langchain-mcp-api/tree/master/mcp-server-php-laravel) - PHP/Laravel implementation
 
 ### Quick Start
 

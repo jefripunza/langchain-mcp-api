@@ -81,7 +81,10 @@ func ChatHandler(c fiber.Ctx) error {
 	}
 
 	ctx := c.Context()
+	startTime := time.Now()
 	result, err := ag.Invoke(requestID, ctx, body.Input)
+	executionTime := time.Since(startTime).Milliseconds()
+
 	if err != nil {
 		if errReq, ok := err.(*types.ErrorRequest); ok {
 			return c.Status(errReq.Code).JSON(fiber.Map{
@@ -93,16 +96,63 @@ func ChatHandler(c fiber.Ctx) error {
 		})
 	}
 
+	// Calculate execution time in seconds
+	executionTimeSec := float64(executionTime) / 1000.0
+
 	response := types.ChatResponse{
-		Messages: result.Messages,
-		Message:  "",
+		Messages:         result.Messages,
+		Message:          "",
+		ExecutionTimeMs:  executionTime,
+		ExecutionTimeSec: executionTimeSec,
+		ModelProvider:    body.Credential.Provider,
 	}
 
+	// Set model name
+	if body.Credential.Model != nil {
+		response.ModelName = *body.Credential.Model
+	}
+
+	// Set final message
 	if result.Message != nil {
 		response.Message = *result.Message
 	} else if len(result.Messages) > 0 {
 		lastMsg := result.Messages[len(result.Messages)-1]
 		response.Message = lastMsg.Content
+	}
+
+	// Calculate iterations and tool calls
+	totalIterations := 0
+	totalToolCalls := 0
+	for _, msg := range result.Messages {
+		if msg.Role == "assistant" {
+			totalIterations++
+			totalToolCalls += len(msg.ToolCalls)
+		}
+	}
+	response.TotalIterations = totalIterations
+	response.ToolCallsCount = totalToolCalls
+
+	// Extract metadata from last assistant message
+	for i := len(result.Messages) - 1; i >= 0; i-- {
+		msg := result.Messages[i]
+		if msg.Role == "assistant" {
+			if msg.Metadata != nil {
+				response.Metadata = msg.Metadata
+				response.FinishReason = msg.Metadata.FinishReason
+			}
+			if msg.UsageData != nil {
+				response.UsageMetadata = msg.UsageData
+				response.TotalTokens = msg.UsageData.TotalTokens
+				response.InputTokens = msg.UsageData.InputTokens
+				response.OutputTokens = msg.UsageData.OutputTokens
+			}
+			break
+		}
+	}
+
+	// Calculate tokens per second
+	if response.TotalTokens > 0 && executionTimeSec > 0 {
+		response.TokensPerSecond = float64(response.TotalTokens) / executionTimeSec
 	}
 
 	utils.VerbosePrintf("[%s] [END REQUEST]\n", requestID)

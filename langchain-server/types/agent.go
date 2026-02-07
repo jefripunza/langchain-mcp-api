@@ -58,6 +58,19 @@ type AgentState struct {
 }
 
 type ChatResponse struct {
-	Messages []Message `json:"messages"`
-	Message  string    `json:"message"`
+	Messages         []Message         `json:"messages"` // ada
+	Message          string            `json:"message"`  // ada
+	Metadata         *ResponseMetadata `json:"metadata,omitempty"`
+	UsageMetadata    *UsageMetadata    `json:"usage_metadata,omitempty"`
+	TotalTokens      int               `json:"total_tokens,omitempty"`
+	InputTokens      int               `json:"input_tokens,omitempty"`
+	OutputTokens     int               `json:"output_tokens,omitempty"`
+	ModelProvider    string            `json:"model_provider,omitempty"` // ada
+	ModelName        string            `json:"model_name,omitempty"`     // ada
+	FinishReason     string            `json:"finish_reason,omitempty"`
+	TotalIterations  int               `json:"total_iterations,omitempty"`   // ada
+	ToolCallsCount   int               `json:"tool_calls_count,omitempty"`   // ada
+	ExecutionTimeMs  int64             `json:"execution_time_ms,omitempty"`  // ada
+	ExecutionTimeSec float64           `json:"execution_time_sec,omitempty"` // ada
+	TokensPerSecond  float64           `json:"tokens_per_second,omitempty"`
 }

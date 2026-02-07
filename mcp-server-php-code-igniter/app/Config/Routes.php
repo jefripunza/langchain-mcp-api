@@ -5,4 +5,8 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Home::index');
+// MCP Server Routes
+$routes->get('/', 'McpController::index');
+$routes->get('/health', 'McpController::health');
+$routes->get('/mcp/tools', 'McpController::tools');
+$routes->post('/mcp/invoke', 'McpController::invoke');

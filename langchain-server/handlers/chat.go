@@ -82,9 +82,9 @@ func ChatHandler(c fiber.Ctx) error {
 
 	ctx := c.Context()
 	startTime := time.Now()
+
 	result, err := ag.Invoke(requestID, ctx, body.Input)
 	executionTime := time.Since(startTime).Milliseconds()
-
 	if err != nil {
 		if errReq, ok := err.(*types.ErrorRequest); ok {
 			return c.Status(errReq.Code).JSON(fiber.Map{
@@ -95,12 +95,20 @@ func ChatHandler(c fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-
 	// Calculate execution time in seconds
 	executionTimeSec := float64(executionTime) / 1000.0
 
+	// Prepend user message to messages array
+	allMessages := []types.Message{
+		{
+			Role:    "user",
+			Content: body.Input,
+		},
+	}
+	allMessages = append(allMessages, result.Messages...)
+
 	response := types.ChatResponse{
-		Messages:         result.Messages,
+		Messages:         allMessages,
 		Message:          "",
 		ExecutionTimeMs:  executionTime,
 		ExecutionTimeSec: executionTimeSec,

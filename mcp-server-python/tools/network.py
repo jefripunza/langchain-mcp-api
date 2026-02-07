@@ -6,6 +6,7 @@ def validate_ip(args):
     ip = args.get("ip", "")
     try:
         ip_obj = ipaddress.ip_address(ip)
+        print(f"✅ MCP3 validate_ip: {ip} -> IPv{ip_obj.version}, private={ip_obj.is_private}")
         return {
             "valid": True,
             "version": ip_obj.version,
@@ -14,14 +15,18 @@ def validate_ip(args):
             "is_multicast": ip_obj.is_multicast
         }
     except ValueError:
+        print(f"❌ MCP3 validate_ip: {ip} -> Invalid IP address")
         return {"valid": False, "error": "Invalid IP address"}
 
 def ip_to_int(args):
     ip = args.get("ip", "")
     try:
         ip_obj = ipaddress.ip_address(ip)
-        return {"integer": int(ip_obj)}
+        result = int(ip_obj)
+        print(f"✅ MCP3 ip_to_int: {ip} -> {result}")
+        return {"integer": result}
     except ValueError:
+        print(f"❌ MCP3 ip_to_int: {ip} -> Invalid IP address")
         return {"error": "Invalid IP address"}
 
 def int_to_ip(args):
@@ -32,14 +37,17 @@ def int_to_ip(args):
             ip = ipaddress.IPv4Address(number)
         else:
             ip = ipaddress.IPv6Address(number)
+        print(f"✅ MCP3 int_to_ip: {number} -> {str(ip)} (IPv{version})")
         return {"ip": str(ip)}
     except Exception as e:
+        print(f"❌ MCP3 int_to_ip: {number} -> {str(e)}")
         return {"error": str(e)}
 
 def parse_url(args):
     url = args.get("url", "")
     try:
         parsed = urllib.parse.urlparse(url)
+        print(f"✅ MCP3 parse_url: {url} -> {parsed.scheme}://{parsed.netloc}{parsed.path}")
         return {
             "scheme": parsed.scheme,
             "netloc": parsed.netloc,
@@ -51,6 +59,7 @@ def parse_url(args):
             "fragment": parsed.fragment
         }
     except Exception as e:
+        print(f"❌ MCP3 parse_url: {url} -> {str(e)}")
         return {"error": str(e)}
 
 def build_url(args):
@@ -73,25 +82,27 @@ def build_url(args):
         query,
         fragment
     ))
+    print(f"✅ MCP3 build_url: {scheme}://{netloc}{path} -> {url}")
     return {"url": url}
 
 def dns_lookup(args):
     hostname = args.get("hostname", "")
     try:
-        print(f"hostname: {hostname}")
         ip = socket.gethostbyname(hostname)
-        print(f"ip: {ip}")
+        print(f"✅ MCP3 dns_lookup: {hostname} -> {ip}")
         return {"ip": ip, "hostname": hostname}
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"❌ MCP3 dns_lookup: {hostname} -> {str(e)}")
         return {"error": str(e)}
 
 def reverse_dns(args):
     ip = args.get("ip", "")
     try:
         hostname = socket.gethostbyaddr(ip)[0]
+        print(f"✅ MCP3 reverse_dns: {ip} -> {hostname}")
         return {"hostname": hostname, "ip": ip}
     except socket.herror as e:
+        print(f"❌ MCP3 reverse_dns: {ip} -> {str(e)}")
         return {"error": str(e)}
 
 network_tools = [

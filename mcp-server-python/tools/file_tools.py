@@ -4,19 +4,23 @@ import mimetypes
 def get_file_extension(args):
     filename = args.get("filename", "")
     _, ext = os.path.splitext(filename)
+    print(f"✅ MCP3 get_file_extension: {filename} -> .{ext.lstrip('.')}")
     return {"extension": ext.lstrip('.')}
 
 def get_mime_type(args):
     filename = args.get("filename", "")
     mime_type, _ = mimetypes.guess_type(filename)
+    print(f"✅ MCP3 get_mime_type: {filename} -> {mime_type or 'unknown'}")
     return {"mime_type": mime_type or "unknown"}
 
 def parse_path(args):
     path = args.get("path", "")
+    basename = os.path.basename(path)
+    print(f"✅ MCP3 parse_path: {path} -> {basename}")
     return {
         "dirname": os.path.dirname(path),
-        "basename": os.path.basename(path),
-        "filename": os.path.splitext(os.path.basename(path))[0],
+        "basename": basename,
+        "filename": os.path.splitext(basename)[0],
         "extension": os.path.splitext(path)[1].lstrip('.'),
         "is_absolute": os.path.isabs(path)
     }
@@ -24,25 +28,33 @@ def parse_path(args):
 def join_path(args):
     parts = args.get("parts", [])
     if not parts:
+        print(f"❌ MCP3 join_path: Parts array cannot be empty")
         return {"error": "Parts array cannot be empty"}
     joined = os.path.join(*parts)
+    print(f"✅ MCP3 join_path: {len(parts)} parts -> {joined}")
     return {"path": joined}
 
 def normalize_path(args):
     path = args.get("path", "")
     normalized = os.path.normpath(path)
+    print(f"✅ MCP3 normalize_path: {path} -> {normalized}")
     return {"normalized": normalized}
 
 def format_bytes(args):
     bytes_value = args.get("bytes", 0)
     units = args.get("units", "auto")
+    original_bytes = bytes_value
     
     if units == "auto":
         for unit in ['B', 'KB', 'MB', 'GB', 'TB', 'PB']:
             if bytes_value < 1024.0:
-                return {"formatted": f"{bytes_value:.2f} {unit}", "value": bytes_value, "unit": unit}
+                formatted = f"{bytes_value:.2f} {unit}"
+                print(f"✅ MCP3 format_bytes: {original_bytes} bytes -> {formatted}")
+                return {"formatted": formatted, "value": bytes_value, "unit": unit}
             bytes_value /= 1024.0
-        return {"formatted": f"{bytes_value:.2f} PB", "value": bytes_value, "unit": "PB"}
+        formatted = f"{bytes_value:.2f} PB"
+        print(f"✅ MCP3 format_bytes: {original_bytes} bytes -> {formatted}")
+        return {"formatted": formatted, "value": bytes_value, "unit": "PB"}
     else:
         unit_map = {
             "B": 1,
@@ -54,7 +66,10 @@ def format_bytes(args):
         }
         if units.upper() in unit_map:
             value = bytes_value / unit_map[units.upper()]
-            return {"formatted": f"{value:.2f} {units.upper()}", "value": value, "unit": units.upper()}
+            formatted = f"{value:.2f} {units.upper()}"
+            print(f"✅ MCP3 format_bytes: {original_bytes} bytes -> {formatted}")
+            return {"formatted": formatted, "value": value, "unit": units.upper()}
+        print(f"❌ MCP3 format_bytes: Invalid unit {units}")
         return {"error": "Invalid unit"}
 
 file_tools = [

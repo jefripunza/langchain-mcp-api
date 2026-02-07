@@ -10,35 +10,42 @@ except ImportError:
 def md5_hash(args):
     text = args.get("text", "")
     hashed = hashlib.md5(text.encode()).hexdigest()
+    print(f"✅ MCP3 md5_hash: {text[:30]}... -> {hashed}")
     return {"hash": hashed}
 
 def sha1_hash(args):
     text = args.get("text", "")
     hashed = hashlib.sha1(text.encode()).hexdigest()
+    print(f"✅ MCP3 sha1_hash: {text[:30]}... -> {hashed}")
     return {"hash": hashed}
 
 def sha256_hash(args):
     text = args.get("text", "")
     hashed = hashlib.sha256(text.encode()).hexdigest()
+    print(f"✅ MCP3 sha256_hash: {text[:30]}... -> {hashed}")
     return {"hash": hashed}
 
 def sha512_hash(args):
     text = args.get("text", "")
     hashed = hashlib.sha512(text.encode()).hexdigest()
+    print(f"✅ MCP3 sha512_hash: {text[:30]}... -> {hashed[:40]}...")
     return {"hash": hashed}
 
 def hmac_sha256(args):
     text = args.get("text", "")
     key = args.get("key", "")
     hashed = hmac.new(key.encode(), text.encode(), hashlib.sha256).hexdigest()
+    print(f"✅ MCP3 hmac_sha256: text={text[:20]}..., key={key[:10]}... -> {hashed}")
     return {"hash": hashed}
 
 def generate_uuid(args):
     version = args.get("version", 4)
     if version == 1:
         generated = str(uuid.uuid1())
+        print(f"✅ MCP3 generate_uuid: v{version} -> {generated}")
     elif version == 4:
         generated = str(uuid.uuid4())
+        print(f"✅ MCP3 generate_uuid: v{version} -> {generated}")
     elif version == 5:
         # UUID v5 requires namespace and name
         name = args.get("name", "")
@@ -54,17 +61,22 @@ def generate_uuid(args):
         namespace = namespace_map.get(namespace_str.lower(), uuid.NAMESPACE_DNS)
         
         if not name:
+            print(f"❌ MCP3 generate_uuid: v5 requires 'name' parameter")
             return {"error": "UUID v5 requires 'name' parameter"}
         
         generated = str(uuid.uuid5(namespace, name))
+        print(f"✅ MCP3 generate_uuid: v{version}, namespace={namespace_str}, name={name} -> {generated}")
     elif version == 7:
         # UUID v7 is time-based (RFC 9562)
         if UUID7_AVAILABLE:
             generated = str(uuid7.create())
+            print(f"✅ MCP3 generate_uuid: v{version} -> {generated}")
         else:
+            print(f"❌ MCP3 generate_uuid: v7 requires uuid7-standard library")
             return {"error": "UUID v7 requires 'uuid7-standard' library. Install with: pip install uuid7-standard"}
     else:
         generated = str(uuid.uuid4())
+        print(f"✅ MCP3 generate_uuid: v{version} (fallback to v4) -> {generated}")
     return {"uuid": generated}
 
 hash_tools = [

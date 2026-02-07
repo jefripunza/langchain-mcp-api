@@ -6,34 +6,41 @@ import json
 def base64_encode(args):
     text = args.get("text", "")
     encoded = base64.b64encode(text.encode()).decode()
+    print(f"✅ MCP3 base64_encode: {len(text)} chars -> {len(encoded)} chars")
     return {"encoded": encoded}
 
 def base64_decode(args):
     text = args.get("text", "")
     try:
         decoded = base64.b64decode(text).decode()
+        print(f"✅ MCP3 base64_decode: {len(text)} chars -> {len(decoded)} chars")
         return {"decoded": decoded}
     except Exception as e:
+        print(f"❌ MCP3 base64_decode: {str(e)}")
         return {"error": str(e)}
 
 def url_encode(args):
     text = args.get("text", "")
     encoded = urllib.parse.quote(text)
+    print(f"✅ MCP3 url_encode: {text[:50]}... -> {encoded[:50]}...")
     return {"encoded": encoded}
 
 def url_decode(args):
     text = args.get("text", "")
     decoded = urllib.parse.unquote(text)
+    print(f"✅ MCP3 url_decode: {text[:50]}... -> {decoded[:50]}...")
     return {"decoded": decoded}
 
 def html_encode(args):
     text = args.get("text", "")
     encoded = html.escape(text)
+    print(f"✅ MCP3 html_encode: {len(text)} chars")
     return {"encoded": encoded}
 
 def html_decode(args):
     text = args.get("text", "")
     decoded = html.unescape(text)
+    print(f"✅ MCP3 html_decode: {len(text)} chars")
     return {"decoded": decoded}
 
 def json_format(args):
@@ -42,8 +49,10 @@ def json_format(args):
     try:
         parsed = json.loads(text)
         formatted = json.dumps(parsed, indent=indent, ensure_ascii=False)
+        print(f"✅ MCP3 json_format: indent={indent}")
         return {"formatted": formatted}
     except Exception as e:
+        print(f"❌ MCP3 json_format: {str(e)}")
         return {"error": str(e)}
 
 def json_minify(args):
@@ -51,8 +60,10 @@ def json_minify(args):
     try:
         parsed = json.loads(text)
         minified = json.dumps(parsed, separators=(',', ':'), ensure_ascii=False)
+        print(f"✅ MCP3 json_minify: {len(text)} -> {len(minified)} chars")
         return {"minified": minified}
     except Exception as e:
+        print(f"❌ MCP3 json_minify: {str(e)}")
         return {"error": str(e)}
 
 encoding_tools = [

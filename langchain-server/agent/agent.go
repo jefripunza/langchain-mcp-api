@@ -486,7 +486,7 @@ func (a *LangChainAgent) buildMessages(requestID string, state *types.AgentState
 
 	// Implement sliding window to prevent context overflow
 	// Keep only the last N messages to stay within context limits
-	maxHistoryMessages := 4 // Default: keep last 4 messages (very conservative for local models)
+	maxHistoryMessages := 20 // Default: keep last 20 messages to preserve tool results
 	if a.llmClient.Config != nil && a.llmClient.Config.MaxContextMessages != nil {
 		maxHistoryMessages = *a.llmClient.Config.MaxContextMessages
 	}
@@ -506,6 +506,9 @@ func (a *LangChainAgent) buildMessages(requestID string, state *types.AgentState
 			msgType = llms.ChatMessageTypeAI
 		case "system":
 			msgType = llms.ChatMessageTypeSystem
+		// case "tool":
+		// 	// Include tool results in conversation as system messages
+		// 	msgType = llms.ChatMessageTypeSystem
 		default:
 			msgType = llms.ChatMessageTypeGeneric
 		}
@@ -552,23 +555,46 @@ func (a *LangChainAgent) buildReactPrompt() string {
 		return fmt.Sprintf(`You are a helpful AI assistant with access to these tools:
 %s
 
-RULES - READ CAREFULLY:
-1. BE CONCISE. Keep <thinking> under 100 words.
-2. Use tools when needed. Format: <thinking>brief reason</thinking><message>{"tool_name":"name","tool_args":{...}}</message>
-3. For final answers: <thinking>brief summary</thinking><message>your answer</message>
-4. NO extra text outside tags. NO repetition.
-5. IMPORTANT: When using tools, carefully check ALL required parameters. Provide EXACTLY the parameters needed - no missing, no extra. Match parameter names and types precisely.
-6. CRITICAL: After tool execution, CHECK THE RESULT. If result is SUCCESS (no "error" field), USE IT IMMEDIATELY in your final answer. DO NOT retry successful tools. Only retry if result contains "error" field (max 3 retries). If you get valid data, STOP calling tools and answer the user.
+CRITICAL: Before calling ANY tool, CHECK conversation history for previous tool results!
 
-EXAMPLE (tool call):
-<thinking>Need weather data for coordinates.</thinking>
-<message>{"tool_name":"getWeather","tool_args":{"latitude":-7.7,"longitude":109.0}}</message>
+RESPONSE FORMAT:
+- Give natural, human-friendly answers in plain text
+- ONLY respond with JSON if user explicitly asks for JSON format
+- Extract data from tool results and present it naturally
+- Example: If tool returns {"uuid":"abc-123"}, say "Here is your UUID: abc-123" NOT raw JSON
 
-EXAMPLE (final answer):
-<thinking>Tool returned weather data.</thinking>
-<message>The weather is sunny, 28°C.</message>
+TOOL EXECUTION RULES:
+1. BEFORE calling a tool, look at conversation history:
+   - If you see {"result":{...}} with NO "error" = Tool already succeeded
+   - If tool already succeeded = USE that data, give final answer NOW
+   - NEVER call the same tool twice with same parameters
+   
+2. Check NEW tool results:
+   - If NO "error" field = SUCCESS → Use data immediately, give final answer
+   - If HAS "error" field = FAILED → Retry with corrected parameters (max 3 times)
 
-BE BRIEF. NO REPETITION.`, strings.Join(toolDescriptions, "\n"))
+3. After ANY success: STOP calling tools, answer user immediately
+
+4. Match parameter names exactly as shown in schema
+
+5. Provide ALL required parameters
+
+EXAMPLES:
+
+User asks: "generate uuid v4"
+
+First call (no history):
+{"tool_name":"generate_uuid","tool_args":{"version":4}}
+
+After getting {"result":{"uuid":"abc-123"}}:
+STOP! Give answer: "Here is your UUID v4: abc-123"
+
+WRONG - NEVER DO THIS:
+Calling tool again after success:
+{"tool_name":"generate_uuid","tool_args":{"version":4}}  ← WRONG! Already have result!
+
+After ERROR {"error":"invalid version"}:
+Retry: {"tool_name":"generate_uuid","tool_args":{"version":4}}`, strings.Join(toolDescriptions, "\n"))
 	}
 
 	return fmt.Sprintf(`You have access to the following tools:
@@ -586,33 +612,9 @@ If you don't need a tool, respond normally to the user's question.`, strings.Joi
 func (a *LangChainAgent) parseManualToolCalls(response *types.Message) *types.Message {
 	content := strings.TrimSpace(response.Content)
 
-	re1 := regexp.MustCompile(`\{\s*"tool_name"\s*:\s*"([^"]+)"\s*,\s*"tool_args"\s*:\s*(\{[^}]*\})\s*\}`)
-	matches := re1.FindStringSubmatch(content)
-
-	if matches == nil {
-		re2 := regexp.MustCompile(`to=(?:tool\.)?(\w+)\s+json\s*\n?\s*(\{[^}]+\})`)
-		matches = re2.FindStringSubmatch(content)
-	}
-
-	// Pattern 3: to=tool.toolname code<|message|>{...}
-	if matches == nil {
-		re3 := regexp.MustCompile(`to=tool\.(\w+)\s+code<\|message\|>(\{[^}]+\})`)
-		matches = re3.FindStringSubmatch(content)
-	}
-
-	// Pattern 4: <message>{...} after tool mention
-	if matches == nil {
-		re4 := regexp.MustCompile(`<message>(\{[^}]+\})`)
-		jsonMatch := re4.FindStringSubmatch(content)
-		if jsonMatch != nil {
-			// Try to find tool name from context
-			toolNameRe := regexp.MustCompile(`(?:to=tool\.|dns_lookup|tool_name["\s:]+)(\w+)`)
-			toolMatch := toolNameRe.FindStringSubmatch(content)
-			if toolMatch != nil {
-				matches = []string{"", toolMatch[1], jsonMatch[1]}
-			}
-		}
-	}
+	// Primary pattern: {"tool_name":"name","tool_args":{...}}
+	re := regexp.MustCompile(`\{\s*"tool_name"\s*:\s*"([^"]+)"\s*,\s*"tool_args"\s*:\s*(\{[^}]*\})\s*\}`)
+	matches := re.FindStringSubmatch(content)
 
 	if matches != nil && len(matches) >= 3 {
 		toolName := matches[1]
@@ -620,6 +622,7 @@ func (a *LangChainAgent) parseManualToolCalls(response *types.Message) *types.Me
 
 		var args map[string]interface{}
 		if err := json.Unmarshal([]byte(argsStr), &args); err == nil {
+			// Convert string numbers to actual numbers
 			for key, val := range args {
 				if strVal, ok := val.(string); ok {
 					if num, err := strconv.ParseFloat(strVal, 64); err == nil {
@@ -667,11 +670,31 @@ func (a *LangChainAgent) executeTools(requestID string, ctx context.Context, too
 
 		resultJSON, _ := json.Marshal(result)
 
+		// Format tool result with clear context for LLM
+		var toolResultContent string
+		var resultData map[string]interface{}
+		if err := json.Unmarshal(resultJSON, &resultData); err == nil {
+			if resultMap, ok := resultData["result"].(map[string]interface{}); ok {
+				// Check if error exists
+				if errorMsg, hasError := resultMap["error"]; hasError {
+					toolResultContent = fmt.Sprintf("Tool '%s' FAILED with error: %v", call.Name, errorMsg)
+				} else {
+					// Success - format with clear context
+					resultStr, _ := json.Marshal(resultMap)
+					toolResultContent = fmt.Sprintf("Tool '%s' SUCCESS: %s", call.Name, string(resultStr))
+				}
+			} else {
+				toolResultContent = string(resultJSON)
+			}
+		} else {
+			toolResultContent = string(resultJSON)
+		}
+
 		toolMessages = append(toolMessages, types.Message{
 			Role:       "tool",
 			ToolCallID: call.ID,
 			Name:       call.Name,
-			Content:    string(resultJSON),
+			Content:    toolResultContent,
 		})
 	}
 

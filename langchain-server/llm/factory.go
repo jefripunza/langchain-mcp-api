@@ -21,7 +21,7 @@ var DefaultModelsLangChain = map[string]string{
 	"claude":     "claude-3-5-sonnet-20241022",
 	"openrouter": "anthropic/claude-3.5-sonnet",
 	"ollama":     "llama3.2",
-	"llama_cpp":  "gpt-oss-20b.gguf",
+	"llama_cpp":  "Qwen/Qwen3-8B-GGUF:Q8_0",
 	"vllm":       "meta-llama/Llama-3.2-3B-Instruct",
 }
 

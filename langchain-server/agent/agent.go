@@ -140,7 +140,7 @@ func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input str
 		}
 		utils.VerbosePrintf("[%s]      ✅ LLM Response (%d chars)\n", requestID, len(content))
 		paramsJSON, _ := json.Marshal(llmResult)
-		fmt.Printf("llmResult: %s\n", string(paramsJSON))
+		utils.VerbosePrintf("[%s]      📊 llmResult: %s\n", requestID, string(paramsJSON))
 
 		// Parse tool calls FIRST before truncation
 		response := &types.Message{
@@ -150,21 +150,85 @@ func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input str
 
 		// Extract metadata from LLM result if available
 		if llmResult != nil && len(llmResult.Choices) > 0 {
-			// Extract usage metadata if available
+			utils.VerbosePrintf("[%s]      🔍 Extracting metadata from llmResult...\n", requestID)
+			// Extract usage metadata from GenerationInfo
 			if llmResult.Choices[0].GenerationInfo != nil {
-				if tokenUsage, ok := llmResult.Choices[0].GenerationInfo["usage"].(map[string]interface{}); ok {
-					usageData := &types.UsageMetadata{}
-					if promptTokens, ok := tokenUsage["prompt_tokens"].(float64); ok {
-						usageData.InputTokens = int(promptTokens)
-					}
-					if completionTokens, ok := tokenUsage["completion_tokens"].(float64); ok {
-						usageData.OutputTokens = int(completionTokens)
-					}
-					if totalTokens, ok := tokenUsage["total_tokens"].(float64); ok {
-						usageData.TotalTokens = int(totalTokens)
-					}
-					response.UsageData = usageData
+				genInfo := llmResult.Choices[0].GenerationInfo
+				genInfoJSON, _ := json.Marshal(genInfo)
+				utils.VerbosePrintf("[%s]         GenerationInfo: %s\n", requestID, string(genInfoJSON))
+				usageData := &types.UsageMetadata{}
+
+				// Extract basic token counts
+				if promptTokens, ok := genInfo["PromptTokens"].(float64); ok {
+					usageData.InputTokens = int(promptTokens)
+					utils.VerbosePrintf("[%s]         ✅ PromptTokens: %d\n", requestID, int(promptTokens))
+				} else {
+					utils.VerbosePrintf("[%s]         ❌ PromptTokens not found or wrong type\n", requestID)
 				}
+				if completionTokens, ok := genInfo["CompletionTokens"].(float64); ok {
+					usageData.OutputTokens = int(completionTokens)
+					utils.VerbosePrintf("[%s]         ✅ CompletionTokens: %d\n", requestID, int(completionTokens))
+				} else {
+					utils.VerbosePrintf("[%s]         ❌ CompletionTokens not found or wrong type\n", requestID)
+				}
+				if totalTokens, ok := genInfo["TotalTokens"].(float64); ok {
+					usageData.TotalTokens = int(totalTokens)
+					utils.VerbosePrintf("[%s]         ✅ TotalTokens: %d\n", requestID, int(totalTokens))
+				} else {
+					utils.VerbosePrintf("[%s]         ❌ TotalTokens not found or wrong type\n", requestID)
+				}
+
+				// Extract additional token details
+				if val, ok := genInfo["CompletionAcceptedPredictionTokens"].(float64); ok {
+					usageData.CompletionAcceptedPredictionTokens = int(val)
+					utils.VerbosePrintf("[%s]         ✅ CompletionAcceptedPredictionTokens: %d\n", requestID, int(val))
+				} else {
+					utils.VerbosePrintf("[%s]         ❌ CompletionAcceptedPredictionTokens not found or wrong type\n", requestID)
+				}
+				if val, ok := genInfo["CompletionAudioTokens"].(float64); ok {
+					usageData.CompletionAudioTokens = int(val)
+					utils.VerbosePrintf("[%s]         ✅ CompletionAudioTokens: %d\n", requestID, int(val))
+				} else {
+					utils.VerbosePrintf("[%s]         ❌ CompletionAudioTokens not found or wrong type\n", requestID)
+				}
+				if val, ok := genInfo["CompletionReasoningTokens"].(float64); ok {
+					usageData.CompletionReasoningTokens = int(val)
+				}
+				if val, ok := genInfo["CompletionRejectedPredictionTokens"].(float64); ok {
+					usageData.CompletionRejectedPredictionTokens = int(val)
+				}
+				if val, ok := genInfo["PromptAudioTokens"].(float64); ok {
+					usageData.PromptAudioTokens = int(val)
+				}
+				if val, ok := genInfo["PromptCachedTokens"].(float64); ok {
+					usageData.PromptCachedTokens = int(val)
+				}
+				if val, ok := genInfo["ReasoningTokens"].(float64); ok {
+					usageData.ReasoningTokens = int(val)
+				}
+				if val, ok := genInfo["ThinkingTokens"].(float64); ok {
+					usageData.ThinkingTokens = int(val)
+				}
+
+				// Set token details if available
+				if usageData.PromptCachedTokens > 0 || usageData.PromptAudioTokens > 0 {
+					usageData.InputTokenDetails = &types.InputTokenDetails{
+						Audio:     usageData.PromptAudioTokens,
+						CacheRead: usageData.PromptCachedTokens,
+					}
+				}
+				if usageData.CompletionAudioTokens > 0 || usageData.CompletionReasoningTokens > 0 {
+					usageData.OutputTokenDetails = &types.OutputTokenDetails{
+						Audio:     usageData.CompletionAudioTokens,
+						Reasoning: usageData.CompletionReasoningTokens,
+					}
+				}
+
+				response.UsageData = usageData
+				utils.VerbosePrintf("[%s]         📊 UsageData set: Input=%d, Output=%d, Total=%d\n",
+					requestID, usageData.InputTokens, usageData.OutputTokens, usageData.TotalTokens)
+			} else {
+				utils.VerbosePrintf("[%s]         ⚠️  GenerationInfo is nil\n", requestID)
 			}
 
 			// Extract finish reason

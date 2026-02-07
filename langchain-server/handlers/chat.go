@@ -126,8 +126,15 @@ func ChatHandler(c fiber.Ctx) error {
 	totalInputTokens := 0
 	totalOutputTokens := 0
 	totalTokensSum := 0
+	totalPromptCached := 0
+	totalPromptAudio := 0
+	totalCompletionAudio := 0
+	totalCompletionReasoning := 0
+	totalReasoningTokens := 0
+	totalThinkingTokens := 0
+	totalAcceptedPrediction := 0
+	totalRejectedPrediction := 0
 	var lastMetadata *types.ResponseMetadata
-	var lastUsageData *types.UsageMetadata
 
 	for _, msg := range result.Messages {
 		if msg.Role == "assistant" {
@@ -139,7 +146,14 @@ func ChatHandler(c fiber.Ctx) error {
 				totalInputTokens += msg.UsageData.InputTokens
 				totalOutputTokens += msg.UsageData.OutputTokens
 				totalTokensSum += msg.UsageData.TotalTokens
-				lastUsageData = msg.UsageData
+				totalPromptCached += msg.UsageData.PromptCachedTokens
+				totalPromptAudio += msg.UsageData.PromptAudioTokens
+				totalCompletionAudio += msg.UsageData.CompletionAudioTokens
+				totalCompletionReasoning += msg.UsageData.CompletionReasoningTokens
+				totalReasoningTokens += msg.UsageData.ReasoningTokens
+				totalThinkingTokens += msg.UsageData.ThinkingTokens
+				totalAcceptedPrediction += msg.UsageData.CompletionAcceptedPredictionTokens
+				totalRejectedPrediction += msg.UsageData.CompletionRejectedPredictionTokens
 			}
 
 			// Keep last metadata
@@ -158,17 +172,33 @@ func ChatHandler(c fiber.Ctx) error {
 		response.InputTokens = totalInputTokens
 		response.OutputTokens = totalOutputTokens
 
-		// Create aggregated usage metadata
+		// Create aggregated usage metadata with all fields
 		response.UsageMetadata = &types.UsageMetadata{
-			InputTokens:  totalInputTokens,
-			OutputTokens: totalOutputTokens,
-			TotalTokens:  totalTokensSum,
+			InputTokens:                        totalInputTokens,
+			OutputTokens:                       totalOutputTokens,
+			TotalTokens:                        totalTokensSum,
+			PromptCachedTokens:                 totalPromptCached,
+			PromptAudioTokens:                  totalPromptAudio,
+			CompletionAudioTokens:              totalCompletionAudio,
+			CompletionReasoningTokens:          totalCompletionReasoning,
+			ReasoningTokens:                    totalReasoningTokens,
+			ThinkingTokens:                     totalThinkingTokens,
+			CompletionAcceptedPredictionTokens: totalAcceptedPrediction,
+			CompletionRejectedPredictionTokens: totalRejectedPrediction,
 		}
 
-		// Copy token details from last usage if available
-		if lastUsageData != nil {
-			response.UsageMetadata.InputTokenDetails = lastUsageData.InputTokenDetails
-			response.UsageMetadata.OutputTokenDetails = lastUsageData.OutputTokenDetails
+		// Set token details if available
+		if totalPromptCached > 0 || totalPromptAudio > 0 {
+			response.UsageMetadata.InputTokenDetails = &types.InputTokenDetails{
+				Audio:     totalPromptAudio,
+				CacheRead: totalPromptCached,
+			}
+		}
+		if totalCompletionAudio > 0 || totalCompletionReasoning > 0 {
+			response.UsageMetadata.OutputTokenDetails = &types.OutputTokenDetails{
+				Audio:     totalCompletionAudio,
+				Reasoning: totalCompletionReasoning,
+			}
 		}
 	}
 

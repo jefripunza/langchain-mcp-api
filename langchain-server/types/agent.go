@@ -13,12 +13,37 @@ type TokenUsage struct {
 	TotalTokens      int `json:"totalTokens"`
 }
 
+// GenerationInfo represents detailed token usage from LLM response
+type GenerationInfo struct {
+	CompletionTokens                   int    `json:"CompletionTokens"`
+	PromptTokens                       int    `json:"PromptTokens"`
+	TotalTokens                        int    `json:"TotalTokens"`
+	CompletionAcceptedPredictionTokens int    `json:"CompletionAcceptedPredictionTokens"`
+	CompletionAudioTokens              int    `json:"CompletionAudioTokens"`
+	CompletionReasoningTokens          int    `json:"CompletionReasoningTokens"`
+	CompletionRejectedPredictionTokens int    `json:"CompletionRejectedPredictionTokens"`
+	PromptAudioTokens                  int    `json:"PromptAudioTokens"`
+	PromptCachedTokens                 int    `json:"PromptCachedTokens"`
+	ReasoningTokens                    int    `json:"ReasoningTokens"`
+	ThinkingTokens                     int    `json:"ThinkingTokens"`
+	ThinkingContent                    string `json:"ThinkingContent,omitempty"`
+	ReasoningContent                   string `json:"ReasoningContent,omitempty"`
+}
+
 type UsageMetadata struct {
-	OutputTokens       int                 `json:"output_tokens"`
-	InputTokens        int                 `json:"input_tokens"`
-	TotalTokens        int                 `json:"total_tokens"`
-	InputTokenDetails  *InputTokenDetails  `json:"input_token_details,omitempty"`
-	OutputTokenDetails *OutputTokenDetails `json:"output_token_details,omitempty"`
+	OutputTokens                       int                 `json:"output_tokens"`
+	InputTokens                        int                 `json:"input_tokens"`
+	TotalTokens                        int                 `json:"total_tokens"`
+	InputTokenDetails                  *InputTokenDetails  `json:"input_token_details,omitempty"`
+	OutputTokenDetails                 *OutputTokenDetails `json:"output_token_details,omitempty"`
+	CompletionAcceptedPredictionTokens int                 `json:"completion_accepted_prediction_tokens,omitempty"`
+	CompletionAudioTokens              int                 `json:"completion_audio_tokens,omitempty"`
+	CompletionReasoningTokens          int                 `json:"completion_reasoning_tokens,omitempty"`
+	CompletionRejectedPredictionTokens int                 `json:"completion_rejected_prediction_tokens,omitempty"`
+	PromptAudioTokens                  int                 `json:"prompt_audio_tokens,omitempty"`
+	PromptCachedTokens                 int                 `json:"prompt_cached_tokens,omitempty"`
+	ReasoningTokens                    int                 `json:"reasoning_tokens,omitempty"`
+	ThinkingTokens                     int                 `json:"thinking_tokens,omitempty"`
 }
 
 type InputTokenDetails struct {

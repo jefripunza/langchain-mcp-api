@@ -1,0 +1,43 @@
+name: Release with ZIP
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Zip MCP servers
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          for dir in mcp-server-*; do
+            if [ ! -d "$dir" ]; then
+              continue
+            fi
+
+            if [ -f "$dir/coming-soon.txt" ]; then
+              echo "Skipping $dir (coming-soon.txt present)"
+              continue
+            fi
+
+            zip_name="${dir}.zip"
+            echo "Creating ${zip_name}"
+            zip -r "${zip_name}" "${dir}"
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            mcp-server-*.zip

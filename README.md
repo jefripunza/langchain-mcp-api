@@ -141,33 +141,86 @@ POST /chat
     "model": "gpt-4o-mini",
     "set": {
       "temperature": 0.7,
-      "max_tokens": 1000,
-      "max_context_messages": 4
+      "max_tokens": 2000
     }
   },
   "system_prompt": "You are a helpful assistant",
-  "input": "What is the weather in Jakarta?",
-  "servers": ["http://host.docker.internal:4000"]
+  "input": "tolong cari dns lookup dari www.example.com, sajikan dalam bahasa indonesia",
+  "servers": ["http://host.docker.internal:4050"] // this tool available on "MCP Server: Python"
 }
 ```
 
 **Response:**
 ```json
 {
-  "input": "What is the weather in Jakarta?",
   "messages": [
     {
+      "role": "user",
+      "content": "tolong cari dns lookup dari www.example.com, sajikan dalam bahasa indonesia"
+    },
+    {
       "role": "assistant",
-      "content": "I'll check the weather for you...",
-      "tool_calls": [...]
+      "content": "{\"tool_name\":\"network_dns_lookup\",\"tool_args\":{\"hostname\":\"www.example.com\"}}",
+      "tool_calls": [
+        {
+          "id": "manual_1770445792732616000",
+          "name": "network_dns_lookup",
+          "args": {
+            "hostname": "www.example.com"
+          },
+          "type": "tool_call"
+        }
+      ],
+      "response_metadata": {
+        "finish_reason": "stop",
+        "model_provider": "openai",
+        "model_name": "gpt-4o-mini",
+        "usage": null,
+        "system_fingerprint": ""
+      },
+      "usage_metadata": {
+        "output_tokens": 120,
+        "input_tokens": 1382,
+        "total_tokens": 1502
+      }
     },
     {
       "role": "tool",
-      "content": "{\"temperature\": 28, \"condition\": \"sunny\"}",
-      "name": "getWeather"
+      "content": "Tool 'network_dns_lookup' SUCCESS: {\"hostname\":\"www.example.com\",\"ip\":\"104.18.26.120\"}",
+      "tool_call_id": "manual_1770445792732616000",
+      "name": "network_dns_lookup"
+    },
+    {
+      "role": "assistant",
+      "content": "Berikut hasil **DNS lookup** untuk `www.example.com`:\n\n- **Nama Domain**: www.example.com  \n- **Alamat IP (IPv4)**: 104.18.26.120  \n\n### Penjelasan:\nDNS (Domain Name System) berfungsi untuk mengubah nama domain (seperti `www.example.com`) menjadi alamat IP (seperti `104.18.26.120`) yang digunakan oleh komputer untuk mengakses situs web.",
+      "response_metadata": {
+        "finish_reason": "stop",
+        "model_provider": "openai",
+        "model_name": "gpt-4o-mini",
+        "usage": null,
+        "system_fingerprint": ""
+      },
+      "usage_metadata": {
+        "output_tokens": 611,
+        "input_tokens": 84,
+        "total_tokens": 695
+      }
     }
   ],
-  "message": "The weather in Jakarta is sunny with a temperature of 28°C."
+  "message": "Berikut hasil **DNS lookup** untuk `www.example.com`:\n\n- **Nama Domain**: www.example.com  \n- **Alamat IP (IPv4)**: 104.18.26.120  \n\n### Penjelasan:\nDNS (Domain Name System) berfungsi untuk mengubah nama domain (seperti `www.example.com`) menjadi alamat IP (seperti `104.18.26.120`) yang digunakan oleh komputer untuk mengakses situs web.",
+  "usage_metadata": {
+    "output_tokens": 731,
+    "input_tokens": 1466,
+    "total_tokens": 2197
+  },
+  "model_provider": "openai",
+  "model_name": "gpt-4o-mini",
+  "finish_reason": "stop",
+  "total_iterations": 2,
+  "tool_calls_count": 1,
+  "execution_time_ms": 26818,
+  "execution_time_sec": 26.818,
+  "tokens_per_second": 81.92
 }
 ```
 

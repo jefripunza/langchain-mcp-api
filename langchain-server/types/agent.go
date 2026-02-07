@@ -7,12 +7,6 @@ type ToolCall struct {
 	Type string                 `json:"type"`
 }
 
-type TokenUsage struct {
-	PromptTokens     int `json:"promptTokens"`
-	CompletionTokens int `json:"completionTokens"`
-	TotalTokens      int `json:"totalTokens"`
-}
-
 // GenerationInfo represents detailed token usage from LLM response
 type GenerationInfo struct {
 	CompletionTokens                   int    `json:"CompletionTokens"`
@@ -57,7 +51,6 @@ type OutputTokenDetails struct {
 }
 
 type ResponseMetadata struct {
-	TokenUsage        TokenUsage  `json:"tokenUsage"`
 	FinishReason      string      `json:"finish_reason"`
 	ModelProvider     string      `json:"model_provider"`
 	ModelName         string      `json:"model_name"`
@@ -87,9 +80,6 @@ type ChatResponse struct {
 	Message          string            `json:"message"`  // ada
 	Metadata         *ResponseMetadata `json:"metadata,omitempty"`
 	UsageMetadata    *UsageMetadata    `json:"usage_metadata,omitempty"`
-	TotalTokens      int               `json:"total_tokens,omitempty"`
-	InputTokens      int               `json:"input_tokens,omitempty"`
-	OutputTokens     int               `json:"output_tokens,omitempty"`
 	ModelProvider    string            `json:"model_provider,omitempty"` // ada
 	ModelName        string            `json:"model_name,omitempty"`     // ada
 	FinishReason     string            `json:"finish_reason,omitempty"`

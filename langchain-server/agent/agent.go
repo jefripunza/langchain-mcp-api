@@ -158,56 +158,97 @@ func (a *LangChainAgent) Invoke(requestID string, ctx context.Context, input str
 				utils.VerbosePrintf("[%s]         GenerationInfo: %s\n", requestID, string(genInfoJSON))
 				usageData := &types.UsageMetadata{}
 
-				// Extract basic token counts
-				if promptTokens, ok := genInfo["PromptTokens"].(float64); ok {
-					usageData.InputTokens = int(promptTokens)
-					utils.VerbosePrintf("[%s]         ✅ PromptTokens: %d\n", requestID, int(promptTokens))
-				} else {
-					utils.VerbosePrintf("[%s]         ❌ PromptTokens not found or wrong type\n", requestID)
+				// Extract basic token counts (handle both int and float64)
+				if val, ok := genInfo["PromptTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.InputTokens = intVal
+						utils.VerbosePrintf("[%s]         ✅ PromptTokens: %d\n", requestID, intVal)
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.InputTokens = int(floatVal)
+						utils.VerbosePrintf("[%s]         ✅ PromptTokens: %d\n", requestID, int(floatVal))
+					} else {
+						utils.VerbosePrintf("[%s]         ❌ PromptTokens wrong type: %T\n", requestID, val)
+					}
 				}
-				if completionTokens, ok := genInfo["CompletionTokens"].(float64); ok {
-					usageData.OutputTokens = int(completionTokens)
-					utils.VerbosePrintf("[%s]         ✅ CompletionTokens: %d\n", requestID, int(completionTokens))
-				} else {
-					utils.VerbosePrintf("[%s]         ❌ CompletionTokens not found or wrong type\n", requestID)
+				if val, ok := genInfo["CompletionTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.OutputTokens = intVal
+						utils.VerbosePrintf("[%s]         ✅ CompletionTokens: %d\n", requestID, intVal)
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.OutputTokens = int(floatVal)
+						utils.VerbosePrintf("[%s]         ✅ CompletionTokens: %d\n", requestID, int(floatVal))
+					} else {
+						utils.VerbosePrintf("[%s]         ❌ CompletionTokens wrong type: %T\n", requestID, val)
+					}
 				}
-				if totalTokens, ok := genInfo["TotalTokens"].(float64); ok {
-					usageData.TotalTokens = int(totalTokens)
-					utils.VerbosePrintf("[%s]         ✅ TotalTokens: %d\n", requestID, int(totalTokens))
-				} else {
-					utils.VerbosePrintf("[%s]         ❌ TotalTokens not found or wrong type\n", requestID)
+				if val, ok := genInfo["TotalTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.TotalTokens = intVal
+						utils.VerbosePrintf("[%s]         ✅ TotalTokens: %d\n", requestID, intVal)
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.TotalTokens = int(floatVal)
+						utils.VerbosePrintf("[%s]         ✅ TotalTokens: %d\n", requestID, int(floatVal))
+					} else {
+						utils.VerbosePrintf("[%s]         ❌ TotalTokens wrong type: %T\n", requestID, val)
+					}
 				}
 
-				// Extract additional token details
-				if val, ok := genInfo["CompletionAcceptedPredictionTokens"].(float64); ok {
-					usageData.CompletionAcceptedPredictionTokens = int(val)
-					utils.VerbosePrintf("[%s]         ✅ CompletionAcceptedPredictionTokens: %d\n", requestID, int(val))
-				} else {
-					utils.VerbosePrintf("[%s]         ❌ CompletionAcceptedPredictionTokens not found or wrong type\n", requestID)
+				// Extract additional token details (handle both int and float64)
+				if val, ok := genInfo["CompletionAcceptedPredictionTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.CompletionAcceptedPredictionTokens = intVal
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.CompletionAcceptedPredictionTokens = int(floatVal)
+					}
 				}
-				if val, ok := genInfo["CompletionAudioTokens"].(float64); ok {
-					usageData.CompletionAudioTokens = int(val)
-					utils.VerbosePrintf("[%s]         ✅ CompletionAudioTokens: %d\n", requestID, int(val))
-				} else {
-					utils.VerbosePrintf("[%s]         ❌ CompletionAudioTokens not found or wrong type\n", requestID)
+				if val, ok := genInfo["CompletionAudioTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.CompletionAudioTokens = intVal
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.CompletionAudioTokens = int(floatVal)
+					}
 				}
-				if val, ok := genInfo["CompletionReasoningTokens"].(float64); ok {
-					usageData.CompletionReasoningTokens = int(val)
+				if val, ok := genInfo["CompletionReasoningTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.CompletionReasoningTokens = intVal
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.CompletionReasoningTokens = int(floatVal)
+					}
 				}
-				if val, ok := genInfo["CompletionRejectedPredictionTokens"].(float64); ok {
-					usageData.CompletionRejectedPredictionTokens = int(val)
+				if val, ok := genInfo["CompletionRejectedPredictionTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.CompletionRejectedPredictionTokens = intVal
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.CompletionRejectedPredictionTokens = int(floatVal)
+					}
 				}
-				if val, ok := genInfo["PromptAudioTokens"].(float64); ok {
-					usageData.PromptAudioTokens = int(val)
+				if val, ok := genInfo["PromptAudioTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.PromptAudioTokens = intVal
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.PromptAudioTokens = int(floatVal)
+					}
 				}
-				if val, ok := genInfo["PromptCachedTokens"].(float64); ok {
-					usageData.PromptCachedTokens = int(val)
+				if val, ok := genInfo["PromptCachedTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.PromptCachedTokens = intVal
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.PromptCachedTokens = int(floatVal)
+					}
 				}
-				if val, ok := genInfo["ReasoningTokens"].(float64); ok {
-					usageData.ReasoningTokens = int(val)
+				if val, ok := genInfo["ReasoningTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.ReasoningTokens = intVal
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.ReasoningTokens = int(floatVal)
+					}
 				}
-				if val, ok := genInfo["ThinkingTokens"].(float64); ok {
-					usageData.ThinkingTokens = int(val)
+				if val, ok := genInfo["ThinkingTokens"]; ok {
+					if intVal, ok := val.(int); ok {
+						usageData.ThinkingTokens = intVal
+					} else if floatVal, ok := val.(float64); ok {
+						usageData.ThinkingTokens = int(floatVal)
+					}
 				}
 
 				// Set token details if available

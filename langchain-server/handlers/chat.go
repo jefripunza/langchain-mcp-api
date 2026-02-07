@@ -168,10 +168,6 @@ func ChatHandler(c fiber.Ctx) error {
 
 	// Set accumulated token counts
 	if totalTokensSum > 0 {
-		response.TotalTokens = totalTokensSum
-		response.InputTokens = totalInputTokens
-		response.OutputTokens = totalOutputTokens
-
 		// Create aggregated usage metadata with all fields
 		response.UsageMetadata = &types.UsageMetadata{
 			InputTokens:                        totalInputTokens,
@@ -209,8 +205,8 @@ func ChatHandler(c fiber.Ctx) error {
 	}
 
 	// Calculate tokens per second
-	if response.TotalTokens > 0 && executionTimeSec > 0 {
-		response.TokensPerSecond = float64(response.TotalTokens) / executionTimeSec
+	if response.UsageMetadata.TotalTokens > 0 && executionTimeSec > 0 {
+		response.TokensPerSecond = float64(response.UsageMetadata.TotalTokens) / executionTimeSec
 	}
 
 	utils.VerbosePrintf("[%s] [END REQUEST]\n", requestID)

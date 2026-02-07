@@ -393,7 +393,7 @@ app.post("/mcp/invoke", async (req, res) => {
 #### 2️⃣ **Tool Registry** (`src/registry.ts`)
 
 ```typescript
-import type { Tool } from "../../types/tool";
+import type { Tool } from "./types/tool";
 import { mathTools } from "./tools/math";
 import { weatherTools } from "./tools/weather";
 
@@ -409,7 +409,7 @@ export function findTool(name: string) {
 #### 3️⃣ **Math Tool Example** (`src/tools/math.ts`)
 
 ```typescript
-import type { Tool } from "../../../types/tool";
+import type { Tool } from "../types/tool";
 
 export const mathTools: Tool[] = [
   {
@@ -439,7 +439,7 @@ export const mathTools: Tool[] = [
 
 ```typescript
 import { fetchWeatherApi } from "openmeteo";
-import type { Tool } from "../../../types/tool";
+import type { Tool } from "../types/tool";
 
 // advance tool version
 export const weatherTools: Tool[] = [

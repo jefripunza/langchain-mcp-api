@@ -1,4 +1,4 @@
-import type { Tool } from "../../types/tool";
+import type { Tool } from "./types/tool";
 import { mathTools } from "./tools/math";
 import { weatherTools } from "./tools/weather";
 

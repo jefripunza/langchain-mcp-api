@@ -1,7 +1,7 @@
 import { fetchWeatherApi } from "openmeteo";
 import { WeatherApiResponse } from "@openmeteo/sdk/weather-api-response";
 
-import type { Tool } from "../../../types/tool";
+import type { Tool } from "../types/tool";
 
 const parameters = [
   "temperature_2m",

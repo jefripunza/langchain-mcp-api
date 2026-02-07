@@ -1,7 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\McpController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// MCP Server Routes
+Route::get('/', [McpController::class, 'index']);
+Route::get('/health', [McpController::class, 'health']);
+Route::get('/mcp/tools', [McpController::class, 'tools']);
+Route::post('/mcp/invoke', [McpController::class, 'invoke']);

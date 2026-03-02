@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 APP_NAME="langchain-mcp-api-app"
 IMAGE_NAME="langchain-mcp-api"
 
